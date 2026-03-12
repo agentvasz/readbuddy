@@ -363,6 +363,9 @@ async function loadPDF(file){
         logPage(p, finalWords.length, method, finalWords.slice(0,4).join(' '));
       } catch(e){
         logPage(p, 0, 'error', e.message);
+        // Show error prominently so it's not missed
+        document.getElementById('progDetail').textContent = '❌ Error on page '+p+': '+e.message;
+        document.getElementById('progLbl').textContent = '⚠️ API Error — check key and try again';
         finalText=''; finalWords=[];
       }
     }
@@ -410,7 +413,7 @@ async function geminiOCR(dataUrl){
   };
 
   var resp=await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,
     {
       method:'POST',
       headers:{'Content-Type':'application/json'},

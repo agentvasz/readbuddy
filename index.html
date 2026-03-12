@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
+<!-- v9.2 - rate limit handling + retry -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -353,20 +354,47 @@ async function loadPDF(file){
       finalText=nativeText; finalWords=nativeWords; method='native';
       logPage(p, finalWords.length, method, finalWords.slice(0,4).join(' '));
     } else {
-      // Send image to Gemini Vision
+      // Send image to Gemini Vision - with rate limit retry
       document.getElementById('progDetail').textContent='Asking Gemini to read page '+p+'…';
-      try{
-        var result=await geminiOCR(dataUrl);
-        finalText=result.replace(/\s+/g,' ').trim();
+      var attempts=0, maxAttempts=4, ocrResult=null;
+      while(attempts<maxAttempts){
+        try{
+          ocrResult=await geminiOCR(dataUrl);
+          break;
+        } catch(e){
+          attempts++;
+          var isRateLimit=e.message&&(
+            e.message.toLowerCase().indexOf('quota')>=0||
+            e.message.indexOf('429')>=0||
+            e.message.toLowerCase().indexOf('unavailable')>=0
+          );
+          if(isRateLimit&&attempts<maxAttempts){
+            var waitSec=attempts*15;
+            for(var w2=waitSec;w2>0;w2--){
+              document.getElementById('progDetail').textContent=
+                '⏳ Rate limit - waiting '+w2+'s then retrying page '+p+' (attempt '+attempts+'/'+maxAttempts+')…';
+              await sleep(1000);
+            }
+          } else {
+            logPage(p,0,'error',e.message.slice(0,100));
+            document.getElementById('progDetail').textContent='❌ Page '+p+': '+e.message.slice(0,100);
+            ocrResult=null;
+            break;
+          }
+        }
+      }
+      if(ocrResult!==null){
+        finalText=ocrResult.replace(/\s+/g,' ').trim();
         finalWords=finalText.split(' ').filter(function(w){return w.trim().length>0;});
         method='gemini';
         logPage(p, finalWords.length, method, finalWords.slice(0,4).join(' '));
-      } catch(e){
-        logPage(p, 0, 'error', e.message);
-        // Show error prominently so it's not missed
-        document.getElementById('progDetail').textContent = '❌ Error on page '+p+': '+e.message;
-        document.getElementById('progLbl').textContent = '⚠️ API Error — check key and try again';
+      } else {
         finalText=''; finalWords=[];
+      }
+      // 4.5s gap keeps us safely under 15 req/min free tier
+      if(p<numPages){
+        document.getElementById('progDetail').textContent='Page '+p+' done - pausing before next…';
+        await sleep(4500);
       }
     }
 
@@ -388,6 +416,8 @@ async function loadPDF(file){
 // ══════════════════════════════════════
 //  GEMINI VISION API CALL
 // ══════════════════════════════════════
+function sleep(ms){return new Promise(function(r){setTimeout(r,ms);});}
+
 async function geminiOCR(dataUrl){
   // Strip the data:image/jpeg;base64, prefix
   var base64=dataUrl.split(',')[1];
@@ -413,7 +443,7 @@ async function geminiOCR(dataUrl){
   };
 
   var resp=await fetch(
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,
+    'https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key='+GEMINI_KEY,
     {
       method:'POST',
       headers:{'Content-Type':'application/json'},

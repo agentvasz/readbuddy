@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- v9.7 - phonemes + pinned hints + wakeLock -->
+<!-- v9.8 - session IDs + strict match + phonemes -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -143,7 +143,7 @@ header{text-align:center;padding:20px 16px 8px;}
 </header>
 <div class="app">
   <div class="warn-bar" id="warnBar">⚠️ Please use <strong>Chrome or Edge</strong> — voice won't work in other browsers!</div>
-  <div class="warn-bar" id="visWarn" style="display:none;background:#fde8ef;border-color:#f87171;color:#c03060;">⚠️ <strong>Keep this tab open and visible</strong> — Chrome pauses the microphone when you switch away!</div>
+  <div class="warn-bar" id="visWarn" style="display:none;background:#fde8ef;border-color:#f87171;color:#c03060;">⚠️ <strong>Keep this tab open!</strong> Chrome pauses the mic when you switch away.</div>
 
   <!-- STEP 1: API Key -->
   <div class="card" id="apiSection">
@@ -251,10 +251,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 var allPages=[], words=[], selectedIdx=0;
 var idx=0, listening=false, recog=null, hintTimer=null, hintStep=0;
-var childHasSpoken=false; // true once child has said their first word this session
+var childHasSpoken=false, hintSpeaking=false, hintPinned=false;
+var sessionId=0, processedResults={};
 var nW=0,nH=0,nS=0, lastSpeakTime=0, lastHeard=[], currentFileName='';
-var HINT_DELAY=5000; // 5s silence before first hint
-var hintSpeaking=false; // true while TTS is playing
+var HINT_DELAY=5000;
 var GEMINI_KEY='';
 
 var FRONT=['copyright','isbn','publisher','published','rights','printed','library',
@@ -276,21 +276,10 @@ window.addEventListener('load', function(){
   var saved=localStorage.getItem('gemini_key');
   if(saved){ GEMINI_KEY=saved; document.getElementById('apiKeyInput').value=saved; showUpload(); }
 });
-
-// Page Visibility — Chrome pauses mic when tab is hidden
-document.addEventListener('visibilitychange', function(){
+document.addEventListener('visibilitychange',function(){
   var bar=document.getElementById('visWarn');
-  if(document.hidden){
-    // Tab went background — show warning
-    if(bar) bar.style.display='block';
-    // Mic will be paused by browser; it will auto-restart via recog.onend when tab returns
-  } else {
-    // Tab is visible again — hide warning, nudge recognition to restart
-    if(bar) bar.style.display='none';
-    if(listening && recog){
-      try{ recog.stop(); }catch(e){}  // triggers onend which restarts it
-    }
-  }
+  if(document.hidden){ if(bar)bar.style.display='block'; }
+  else{ if(bar)bar.style.display='none'; if(listening&&recog){try{recog.stop();}catch(e){}} }
 });
 
 // ══════════════════════════════════════
@@ -328,15 +317,10 @@ async function loadPDF(file){
   zone.classList.remove('show');
   document.getElementById('ocrSection').style.display='block';
   allPages=[];
+  var wakeLock=null,keepAlive=true;
+  try{if(navigator.wakeLock)wakeLock=await navigator.wakeLock.request('screen');}catch(e){}
+  (function raf(){if(keepAlive)requestAnimationFrame(raf);})();
 
-  // Keep screen + JS alive during scanning using Wake Lock API where available
-  var wakeLock=null;
-  try{
-    if(navigator.wakeLock) wakeLock=await navigator.wakeLock.request('screen');
-  }catch(e){}
-  // Also run a rAF heartbeat so the JS event loop stays active if tab is backgrounded
-  var keepAlive=true;
-  (function rafLoop(){ if(keepAlive) requestAnimationFrame(rafLoop); })();
 
   var buf=await file.arrayBuffer();
   var pdf=await pdfjsLib.getDocument({
@@ -421,7 +405,7 @@ async function loadPDF(file){
       }
       // 4.5s gap keeps us safely under 15 req/min free tier
       if(p<numPages){
-        document.getElementById('progDetail').textContent='Page '+p+' done — brief pause…';
+        document.getElementById('progDetail').textContent='Page '+p+' done - pausing before next…';
         await sleep(2000);
       }
     }
@@ -429,10 +413,8 @@ async function loadPDF(file){
     allPages.push({num:p, text:finalText, words:finalWords});
   }
 
-  // Release wake lock and stop heartbeat
   keepAlive=false;
-  try{ if(wakeLock) await wakeLock.release(); }catch(e){}
-
+  try{if(wakeLock)await wakeLock.release();}catch(e){}
   document.getElementById('ocrBar').style.width='100%';
   document.getElementById('progLbl').textContent='✅ All pages read!';
   var total=allPages.reduce(function(s,p){return s+p.words.length;},0);
@@ -632,96 +614,79 @@ function updateDiag(heardArr,curIdx){
 //  SPEECH
 // ══════════════════════════════════════
 function toggleListen(){listening?stopListen():startListen();}
-function startListen(){
+
+function startRecog(){
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert('Please use Chrome or Edge!');return;}
+  if(!SR) return;
   recog=new SR();
-  recog.continuous=true;recog.interimResults=true;recog.lang='en-US';recog.maxAlternatives=10;
-  recog.onresult=onResult;
-  recog.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')document.getElementById('diagStatus').textContent='Mic error: '+e.error;};
-  recog.onend=function(){if(listening){try{recog.start();}catch(e){}}};
-  try{recog.start();}catch(e){alert('Mic error: '+e.message);return;}
-  listening=true;
-  childHasSpoken=false;           // reset — don't allow hints until first speech
-  lastResultIdx=-1;               // reset result index tracker
-  lastSpeakTime=Date.now()+99999; // far future — hints can't fire until child speaks
-  document.getElementById('bigBtn').classList.add('on');
-  document.getElementById('bigBtn').textContent='⏹️';
-  document.getElementById('btnLbl').textContent="I'm Listening!";
-  // Don't arm hint timer yet — armHint() is called after first speech in onResult
+  recog.continuous=true; recog.interimResults=false;
+  recog.lang='en-US'; recog.maxAlternatives=5;
+  var mySession=++sessionId;
+  processedResults={};
+  recog.onresult=function(ev){ onResult(ev,mySession); };
+  recog.onerror=function(e){
+    if(e.error==='no-speech'||e.error==='aborted') return;
+    document.getElementById('diagStatus').textContent='Mic: '+e.error;
+  };
+  recog.onend=function(){
+    if(listening&&mySession===sessionId)
+      setTimeout(function(){ if(listening&&mySession===sessionId) try{startRecog();}catch(e){} },150);
+  };
+  try{recog.start();}catch(e){}
 }
+
+function startListen(){
+  if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){alert('Please use Chrome or Edge!');return;}
+  listening=true; childHasSpoken=false; hintPinned=false; hintStep=0;
+  lastSpeakTime=Date.now()+999999;
+  document.getElementById('bigBtn').classList.add('on');
+  document.getElementById('bigBtn').textContent='\u23f9\ufe0f';
+  document.getElementById('btnLbl').textContent="I'm Listening!";
+  startRecog();
+}
+
 function stopListen(){
-  listening=false;
-  if(recog){try{recog.stop();}catch(e){}recog=null;}
+  listening=false; sessionId++;
+  if(recog){try{recog.abort();}catch(e){}recog=null;}
   clearHintTimer();
   document.getElementById('bigBtn').classList.remove('on');
-  document.getElementById('bigBtn').textContent='🎤';
+  document.getElementById('bigBtn').textContent='\uD83C\uDFA4';
   document.getElementById('btnLbl').textContent='Start Reading!';
 }
-var lastResultIdx=-1; // tracks highest result index we've already acted on
 
-function onResult(event){
-  // Collect only NEW final results (ones we haven't processed yet)
-  var pool={};
-  var gotNew=false;
-  for(var r=0;r<event.results.length;r++){
-    if(!event.results[r].isFinal) continue;    // skip interim
-    if(r<=lastResultIdx) continue;             // skip already-processed results
-    lastResultIdx=r;
-    gotNew=true;
-    for(var a=0;a<event.results[r].length;a++)
-      event.results[r][a].transcript.toLowerCase()
-        .replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean)
-        .forEach(function(w){pool[w]=true;});
+function onResult(ev,mySession){
+  if(mySession!==sessionId||hintSpeaking) return;
+  var heard=[];
+  for(var r=0;r<ev.results.length;r++){
+    if(!ev.results[r].isFinal) continue;
+    var key=mySession+':'+r;
+    if(processedResults[key]) continue;
+    processedResults[key]=true;
+    ev.results[r][0].transcript.toLowerCase()
+      .replace(/[^a-z0-9'\s]/g,' ').trim().split(/\s+/)
+      .filter(Boolean).forEach(function(w){heard.push(w);});
   }
-  if(!gotNew || !Object.keys(pool).length) return;
-
-  var heardArr=Object.keys(pool);
-
-  // Don't process mic input while app is speaking a hint — child is just listening
-  if(hintSpeaking) return;
-
-  // First speech — arm hint timer now
-  if(!childHasSpoken){
-    childHasSpoken=true;
-    armHint();
-  }
-  // Reset silence clock any time we hear speech
+  if(!heard.length) return;
+  if(!childHasSpoken){childHasSpoken=true;armHint();}
   lastSpeakTime=Date.now();
-
-  lastHeard=heardArr;
-  updateDiag(heardArr,idx);
-
-  // If we're locked onto a hint word, handle the attempt specially
-  if(hintPinned){
-    handleHintAttempt(heardArr);
-    return;
-  }
-
-  // Normal reading — match only the current expected word
-  var target=clean(words[idx]||'');
-  var matched=false;
-  for(var h=0;h<heardArr.length;h++){
-    if(matches(heardArr[h],target)){ matched=true; break; }
-  }
-  if(matched){ advanceOne(); hideHint(); }
+  lastHeard=heard; updateDiag(heard,idx);
+  if(hintPinned){handleHintAttempt(heard);return;}
+  if(idx<words.length&&matchWord(heard[0],clean(words[idx]))){advanceOne();hideHint();}
 }
+
 function clean(w){return(''+w).toLowerCase().replace(/[^a-z]/g,'');}
-function matches(heard,expected){
-  if(!heard||!expected)return false;
-  if(expected.length===1)return heard===expected;
-  if(heard===expected)return true;
-  if(expected.indexOf(heard)>=0&&heard.length>=3)return true;
-  if(heard.indexOf(expected)>=0&&expected.length>=3)return true;
-  var shared=Math.min(heard.length,expected.length);
-  if(shared>=3&&heard.slice(0,shared)===expected.slice(0,shared))return true;
+function matchWord(heard,expected){
+  if(!heard||!expected) return false;
+  heard=clean(heard); expected=clean(expected);
+  if(!heard||!expected) return false;
+  if(expected.length<=1) return heard===expected;
+  if(heard===expected) return true;
   var d=lev(heard,expected);
-  var maxD=expected.length<=3?1:expected.length<=5?2:expected.length<=8?3:4;
-  if(d<=maxD)return true;
-  if(expected.length>=4&&soundex(heard)===soundex(expected))return true;
-  if(heard.length>=4&&expected.length>=4&&heard.slice(0,4)===expected.slice(0,4))return true;
+  if(d<=(expected.length<=4?1:2)) return true;
+  if(expected.length>=5&&heard.length>=4&&soundex(heard)===soundex(expected)) return true;
   return false;
 }
+function matches(h,e){return matchWord(h,e);}
 function lev(a,b){
   if(Math.abs(a.length-b.length)>5)return 99;
   var prev=[];for(var j=0;j<=b.length;j++)prev[j]=j;
@@ -743,7 +708,6 @@ function advanceOne(){
   nW++;nS++;idx++;hintStep=0;hideHint();updateStats();
   if(idx>=words.length){stopListen();celebrate();return;}
   renderText();updateDiag(lastHeard,idx);
-  // Fresh 5s window for the new word before any hint fires
   lastSpeakTime=Date.now();
 }
 
@@ -753,73 +717,51 @@ function advanceOne(){
 function armHint(){
   clearHintTimer();
   hintTimer=setInterval(function(){
-    if(!listening || idx>=words.length) return;
-    if(hintSpeaking) return;  // still talking — don't stack hints
-    var elapsed=Date.now()-lastSpeakTime;
-    if(elapsed>=HINT_DELAY) giveHint();
+    if(!listening||idx>=words.length||hintSpeaking) return;
+    if(Date.now()-lastSpeakTime>=HINT_DELAY) giveHint();
   },500);
 }
 function clearHintTimer(){if(hintTimer){clearInterval(hintTimer);hintTimer=null;}}
-var hintPinned=false; // true when we're locked onto a word waiting for correct attempt
-
 function giveHint(){
-  if(!listening||idx>=words.length)return;
+  if(!listening||idx>=words.length) return;
   nH++;updateStats();
   var raw=words[idx],word=clean(raw);
-  hintPinned=true; // lock onto this word — don't advance until child says it right
+  hintPinned=true;
   if(hintStep===0){
     var ph=phonemeOf(word);
-    showHint('🔊','First Sound',ph+'…',
-      'It starts with "'+ph+'"',
-      "Hmm, let's try that word. It starts with the sound… "+ph+"… "+ph+". Can you say the whole word?");
+    showHint('\uD83D\uDD0A','First Sound',ph+'...',
+      'It starts with the sound "'+ph+'"',
+      "Hmm, let's try that word. It starts with the sound... "+ph+"... "+ph+". Can you say the whole word?");
+    hintStep=1;
   }else if(hintStep===1){
     var syl=firstSyllable(word);
-    showHint('💬','First Part',syl+'-',
+    showHint('\uD83D\uDCAC','First Part',syl+'-',
       'Say this part: "'+syl+'"',
-      "Good try! Listen to the first part… "+syl+"… "+syl+". Now say the whole word.");
+      "Good try! Listen to the first part... "+syl+"... "+syl+". Now say the whole word.");
+    hintStep=2;
   }else{
-    showHint('🌟','The Word Is',raw,
+    showHint('\uD83C\uDF1F','The Word Is',raw,
       'Now you say it: "'+raw+'"',
-      "That is a tricky one. The word is… "+raw+". Can you say it with me? "+raw+".");
-    // Don't increment past step 2 — keep repeating the full word until child says it
-    return;
+      "That is a tricky one. The word is... "+raw+". Can you say it with me? "+raw+".");
   }
-  hintStep++;
+}
+function handleHintAttempt(heard){
+  var raw=words[idx],word=clean(raw),correct=false;
+  for(var h=0;h<heard.length;h++) if(matchWord(heard[h],word)){correct=true;break;}
+  if(correct){
+    hintPinned=false; hintStep=0;
+    speak("Well done! Keep going.");
+    var snap=idx;
+    setTimeout(function(){if(idx===snap)advanceOne();},1800);
+  }else{
+    var enc=["Good try! ","Almost! ","Nice effort! ","Keep going! "][Math.floor(Math.random()*4)];
+    var ph=phonemeOf(word),syl=firstSyllable(word);
+    if(hintStep<=1) speak(enc+"Remember, it starts with the sound... "+ph+"... "+ph+". Try again!");
+    else if(hintStep===2) speak(enc+"The first part is... "+syl+". Say the whole word... "+raw+".");
+    else speak(enc+"The word is... "+raw+". "+raw+". You can do it!");
+  }
 }
 
-// Called from onResult when child attempts a word while hintPinned
-function handleHintAttempt(heardArr){
-  var raw=words[idx], word=clean(raw);
-  var correct=false;
-  for(var h=0;h<heardArr.length;h++){
-    if(matches(heardArr[h],word)){ correct=true; break; }
-  }
-  if(correct){
-    // Child got it! Praise and advance
-    hintPinned=false;
-    hintStep=0;
-    speak("Well done! Keep going.");
-    // Advance after praise finishes — onend will have set lastSpeakTime
-    // We schedule advance via a short timeout so TTS plays first
-    var advIdx=idx;
-    setTimeout(function(){
-      if(idx===advIdx) advanceOne(); // only if still on same word
-    }, 2000);
-  } else {
-    // Wrong attempt — acknowledge and re-give the current hint level
-    var encouragements=["Good try! ","Almost! ","Keep going! ","Nice effort! "];
-    var enc=encouragements[Math.floor(Math.random()*encouragements.length)];
-    var ph=phonemeOf(word), syl=firstSyllable(word);
-    if(hintStep<=1){
-      speak(enc+"Remember, it starts with… "+ph+"… "+ph+". Try again!");
-    } else if(hintStep===2){
-      speak(enc+"The first part is… "+syl+". The whole word is… "+raw+". You try!");
-    } else {
-      speak(enc+"The word is… "+raw+". "+raw+". Say it with me!");
-    }
-    // lastSpeakTime resets via onend so child gets another 5s window
-  }
-}
 function showHint(icon,tag,wordDisplay,sub,toSpeak){
   document.getElementById('hintIcon').textContent=icon;
   document.getElementById('hintTag').textContent=tag;
@@ -831,75 +773,48 @@ function showHint(icon,tag,wordDisplay,sub,toSpeak){
 }
 function hideHint(){document.getElementById('hintBox').classList.remove('show');}
 function sayAgain(){
-  var word=clean(words[idx]||''), raw=words[idx]||'';
-  if(hintStep<=1) speak('It starts with the sound… '+phonemeOf(word)+'… '+phonemeOf(word)+'. You say the whole word!');
-  else if(hintStep===2) speak('The first part is… '+firstSyllable(word)+'… now you say the whole word.');
-  else speak('The word is… '+raw+'. '+raw+'. Your turn!');
+  var word=clean(words[idx]||''),raw=words[idx]||'';
+  if(hintStep<=1) speak('It starts with the sound... '+phonemeOf(word)+'... '+phonemeOf(word)+'. You say the whole word!');
+  else if(hintStep===2) speak('The first part is... '+firstSyllable(word)+'. Say the whole word.');
+  else speak('The word is... '+raw+'. '+raw+'. Your turn!');
 }
 function speak(text){
   var synth=window.speechSynthesis;
   synth.cancel();
   var u=new SpeechSynthesisUtterance(text);
-  // Smooth, professional pace — slightly slower, natural pitch
   u.rate=0.78; u.pitch=1.0; u.volume=1.0;
   var voices=synth.getVoices();
-  // Priority order: Neural/premium voices first, then reliable fallbacks
-  var names=[
-    'Google UK English Female',  // smooth, clear, widely available in Chrome
-    'Microsoft Aria',            // excellent neural voice on Edge/Windows
-    'Microsoft Jenny',           // warm neural voice
-    'Samantha',                  // macOS built-in, very natural
-    'Karen',                     // macOS Australian, clear
-    'Victoria',                  // macOS, good clarity
-    'Google US English',         // fallback Chrome
-    'Microsoft Zira'             // fallback Edge
-  ];
+  var names=['Google UK English Female','Microsoft Aria','Microsoft Jenny','Samantha','Karen','Victoria','Google US English','Microsoft Zira'];
   var pick=null;
   for(var n=0;n<names.length&&!pick;n++)
     for(var v=0;v<voices.length&&!pick;v++)
       if(voices[v].name.indexOf(names[n])>=0) pick=voices[v];
   if(pick) u.voice=pick;
   hintSpeaking=true;
-  var spokenAt=Date.now();
-  // Reset clock when speech ends — child gets a fresh 5s window to attempt the word
-  var resetAfterSpeak=function(){
-    if(!hintSpeaking) return; // already reset
-    hintSpeaking=false;
-    lastSpeakTime=Date.now();
-  };
-  u.onend=resetAfterSpeak;
-  u.onerror=resetAfterSpeak;
-  // Hard fallback: if onend never fires (Chrome TTS bug), force-reset after 8s
-  setTimeout(resetAfterSpeak, 8000);
+  var done=false;
+  var resetSpeak=function(){ if(done)return; done=true; hintSpeaking=false; lastSpeakTime=Date.now(); };
+  u.onend=resetSpeak; u.onerror=resetSpeak;
+  setTimeout(resetSpeak,8000);
   synth.speak(u);
 }
-// Map letters/digraphs to how they SOUND (phonemes), not letter names
 var PHONEME={
-  'ch':'chuh', 'sh':'shuh', 'th':'thuh', 'wh':'wuh', 'ph':'fff',
-  'qu':'kwuh', 'tr':'truh', 'gr':'gruh', 'br':'bruh', 'fr':'fruh',
-  'cr':'cruh', 'dr':'druh', 'pr':'pruh', 'bl':'bluh', 'cl':'cluh',
-  'fl':'fluh', 'gl':'gluh', 'pl':'pluh', 'sl':'sluh', 'sp':'spuh',
-  'st':'stuh', 'sw':'swuh', 'sn':'snuh', 'sm':'smuh', 'sk':'skuh',
-  'wr':'ruh',  'kn':'nuh',
-  'a':'aah', 'b':'buh', 'c':'cuh', 'd':'duh', 'e':'eh',
-  'f':'fff',  'g':'guh', 'h':'huh', 'i':'ih',  'j':'juh',
-  'k':'kuh',  'l':'lll', 'm':'mmm', 'n':'nnn', 'o':'oh',
-  'p':'puh',  'q':'kwuh','r':'rrr', 's':'sss', 't':'tuh',
-  'u':'uh',   'v':'vvv', 'w':'wuh', 'x':'ksss','y':'yuh', 'z':'zzz'
-};
+  'ch':'chuh','sh':'shh','th':'thuh','wh':'wuh','ph':'fff',
+  'qu':'kwuh','tr':'truh','gr':'gruh','br':'bruh','fr':'fruh','cr':'cruh',
+  'dr':'druh','pr':'pruh','bl':'bluh','cl':'cluh','fl':'fluh','gl':'gluh',
+  'pl':'pluh','sl':'sluh','sp':'spuh','st':'stuh','sw':'swuh','sn':'snuh',
+  'sm':'smuh','sk':'skuh','wr':'ruh','kn':'nuh',
+  'a':'aah','b':'buh','c':'cuh','d':'duh','e':'eh','f':'fff','g':'guh',
+  'h':'huh','i':'ih','j':'juh','k':'kuh','l':'lll','m':'mmm','n':'nnn',
+  'o':'oh','p':'puh','q':'kwuh','r':'rrr','s':'sss','t':'tuh','u':'uh',
+  'v':'vvv','w':'wuh','x':'ksss','y':'yuh','z':'zzz'};
+var DIGRAPHS=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
 function firstSound(w){
-  var digraphs=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
-  for(var i=0;i<digraphs.length;i++)
-    if(w.indexOf(digraphs[i])===0) return digraphs[i];
+  for(var i=0;i<DIGRAPHS.length;i++) if(w.indexOf(DIGRAPHS[i])===0) return DIGRAPHS[i];
   return w[0]||'';
 }
-// Returns the spoken phoneme for TTS — sounds like the letter, not its name
 function phonemeOf(w){
-  var digraphs=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
-  for(var i=0;i<digraphs.length;i++)
-    if(w.indexOf(digraphs[i])===0) return PHONEME[digraphs[i]]||digraphs[i];
-  var first=(w[0]||'').toLowerCase();
-  return PHONEME[first]||first;
+  for(var i=0;i<DIGRAPHS.length;i++) if(w.indexOf(DIGRAPHS[i])===0) return PHONEME[DIGRAPHS[i]]||DIGRAPHS[i];
+  return PHONEME[(w[0]||'').toLowerCase()]||(w[0]||'');
 }
 function firstSyllable(w){
   if(!w||w.length<=3)return w;

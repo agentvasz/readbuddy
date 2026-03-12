@@ -6,132 +6,134 @@
 <title>ReadBuddy 📚</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
-  :root{ --sun:#FFD166;--grass:#06D6A0;--berry:#EF476F;--blue:#4361EE;--text:#1a1a2e;--muted:#6b7280; }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#c9e8ff,#e8f5ff 50%,#d4f0e8);min-height:100vh;color:var(--text);}
-  header{text-align:center;padding:20px 16px 8px;}
-  .logo{font-family:'Fredoka One',cursive;font-size:clamp(1.7rem,5vw,2.5rem);color:var(--blue);display:inline-flex;align-items:center;gap:9px;}
-  .logo span{display:inline-block;animation:bb 2.5s ease-in-out infinite;}
-  @keyframes bb{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg) scale(1.1)}}
-  .tag{font-size:.85rem;color:var(--muted);font-weight:700;margin-top:2px;}
-  .app{max-width:700px;margin:0 auto;padding:0 14px 60px;}
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
+:root{ --sun:#FFD166;--grass:#06D6A0;--berry:#EF476F;--blue:#4361EE;--text:#1a1a2e;--muted:#6b7280; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#c9e8ff,#e8f5ff 50%,#d4f0e8);min-height:100vh;color:var(--text);}
+header{text-align:center;padding:20px 16px 8px;}
+.logo{font-family:'Fredoka One',cursive;font-size:clamp(1.7rem,5vw,2.5rem);color:var(--blue);display:inline-flex;align-items:center;gap:9px;}
+.logo span{display:inline-block;animation:bb 2.5s ease-in-out infinite;}
+@keyframes bb{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg) scale(1.1)}}
+.tag{font-size:.85rem;color:var(--muted);font-weight:700;margin-top:2px;}
+.app{max-width:700px;margin:0 auto;padding:0 14px 60px;}
 
-  .warn{background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:.82rem;font-weight:700;color:#856404;display:none;}
-  .warn.show{display:block;}
+/* ERROR LOG - always visible for debugging */
+#errorLog{background:#7f1d1d;color:#fca5a5;border-radius:10px;padding:10px 13px;margin-bottom:10px;font-family:monospace;font-size:.75rem;display:none;white-space:pre-wrap;}
 
-  /* UPLOAD */
-  .upload{background:#fff;border-radius:22px;padding:30px 20px;text-align:center;border:3px dashed #b5d5f5;cursor:pointer;transition:all .2s;box-shadow:0 6px 24px rgba(67,97,238,.08);position:relative;}
-  .upload:hover,.upload.over{border-color:var(--blue);background:#f0f5ff;transform:translateY(-2px);}
-  .upload input{position:absolute;inset:0;opacity:0;cursor:pointer;}
-  .upload .ico{font-size:2.6rem;display:block;margin-bottom:8px;animation:fl 3s ease-in-out infinite;}
-  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  .upload h2{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--blue);margin-bottom:4px;}
-  .upload p{color:var(--muted);font-size:.84rem;font-weight:600;}
-  .ucta{display:inline-block;margin-top:11px;background:var(--blue);color:#fff;font-family:'Fredoka One',cursive;font-size:.93rem;padding:8px 22px;border-radius:50px;pointer-events:none;box-shadow:0 4px 0 #2d46c7;}
+.warn{background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:.82rem;font-weight:700;color:#856404;display:none;}
+.warn.show{display:block;}
 
-  .loading{text-align:center;padding:14px;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--blue);display:none;}
-  .loading.show{display:block;}
-  .spin{display:inline-block;width:17px;height:17px;border:3px solid #c0d0ff;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px;}
-  @keyframes sp{to{transform:rotate(360deg)}}
+/* UPLOAD */
+.card{background:#fff;border-radius:20px;padding:24px 20px;margin-top:10px;box-shadow:0 5px 22px rgba(0,0,0,.08);}
+.upload{text-align:center;border:3px dashed #b5d5f5;cursor:pointer;transition:all .2s;position:relative;}
+.upload:hover,.upload.over{border-color:var(--blue);background:#f0f5ff;}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload .ico{font-size:2.6rem;display:block;margin-bottom:8px;animation:fl 3s ease-in-out infinite;}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.upload h2{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--blue);margin-bottom:4px;}
+.upload p{color:var(--muted);font-size:.84rem;font-weight:600;}
+.ucta{display:inline-block;margin-top:11px;background:var(--blue);color:#fff;font-family:'Fredoka One',cursive;font-size:.93rem;padding:8px 22px;border-radius:50px;pointer-events:none;box-shadow:0 4px 0 #2d46c7;}
 
-  /* ── STORY FINDER ── the key new section */
-  .finder{background:#fff;border-radius:20px;padding:18px 18px;margin-top:12px;box-shadow:0 5px 22px rgba(0,0,0,.08);display:none;}
-  .finder.show{display:block;}
-  .finder h3{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--blue);margin-bottom:4px;}
-  .finder p{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:12px;line-height:1.5;}
+.loading{text-align:center;padding:14px;font-family:'Fredoka One',cursive;font-size:1rem;color:var(--blue);display:none;}
+.loading.show{display:block;}
+.spin{display:inline-block;width:17px;height:17px;border:3px solid #c0d0ff;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px;}
+@keyframes sp{to{transform:rotate(360deg)}}
 
-  .pages-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;max-height:320px;overflow-y:auto;margin-bottom:12px;}
-  .page-card{border:2px solid #e5e7eb;border-radius:12px;padding:10px 12px;cursor:pointer;transition:all .18s;background:#fafafa;}
-  .page-card:hover{border-color:var(--blue);background:#f0f5ff;}
-  .page-card.selected{border-color:var(--grass);background:#f0fff8;box-shadow:0 0 0 3px rgba(6,214,160,.2);}
-  .page-card.auto-pick{border-color:var(--sun);background:#fffbf0;}
-  .page-num{font-family:'Fredoka One',cursive;font-size:.85rem;color:var(--muted);margin-bottom:3px;}
-  .page-preview{font-size:.78rem;color:#374151;font-weight:600;line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;}
-  .page-badge{font-size:.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;padding:1px 6px;border-radius:99px;display:inline-block;margin-bottom:4px;}
-  .badge-auto{background:#fff3cd;color:#b07a00;}
-  .badge-skip{background:#fde8ef;color:#c03060;}
+/* PAGE PICKER */
+#pickerSection{display:none;}
+#pickerSection.show{display:block;}
+.picker-header{margin-bottom:14px;}
+.picker-header h3{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--blue);margin-bottom:5px;}
+.picker-header p{font-size:.83rem;color:var(--muted);font-weight:600;line-height:1.5;}
 
-  .finder-actions{display:flex;gap:8px;flex-wrap:wrap;}
-  .btn-start{background:var(--grass);color:#fff;border:none;border-radius:50px;padding:9px 22px;font-family:'Fredoka One',cursive;font-size:.95rem;cursor:pointer;box-shadow:0 4px 0 #04a67d;transition:all .18s;flex:1;}
-  .btn-start:hover{transform:translateY(-2px);box-shadow:0 6px 0 #04a67d;}
-  .btn-manual{background:#f1f5ff;color:var(--blue);border:2px solid #d0dcff;border-radius:50px;padding:8px 18px;font-family:'Fredoka One',cursive;font-size:.88rem;cursor:pointer;transition:all .18s;}
-  .btn-manual:hover{background:#dde6ff;}
+.page-list{display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto;margin-bottom:14px;padding-right:4px;}
+.page-item{border:2px solid #e5e7eb;border-radius:12px;padding:11px 14px;cursor:pointer;transition:all .18s;background:#fafafa;display:flex;align-items:flex-start;gap:12px;}
+.page-item:hover{border-color:var(--blue);background:#f0f5ff;}
+.page-item.selected{border-color:var(--grass);background:#f0fff8;box-shadow:0 0 0 3px rgba(6,214,160,.18);}
+.page-item.guess{border-color:var(--sun);background:#fffbf0;}
+.page-num-badge{font-family:'Fredoka One',cursive;font-size:.8rem;background:#e8f0fe;color:var(--blue);border-radius:8px;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-top:1px;}
+.page-info{flex:1;min-width:0;}
+.page-label{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.label-guess{color:#b07a00;}
+.label-front{color:#c03060;}
+.label-story{color:#047857;}
+.page-preview{font-size:.8rem;color:#374151;font-weight:600;line-height:1.45;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
 
-  /* BOOK BAR */
-  .bookbar{background:#fff;border-radius:16px;padding:10px 15px;margin-top:10px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 15px rgba(0,0,0,.07);}
-  .bookbar.hidden{display:none;}
-  .bico{width:34px;height:44px;background:linear-gradient(135deg,#9B5DE5,var(--blue));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;box-shadow:2px 2px 0 rgba(0,0,0,.15);}
-  .bname{flex:1;font-weight:800;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px;}
-  .bcount{font-size:.74rem;color:var(--muted);font-weight:600;margin-top:1px;}
-  .chbtn{background:#f1f5ff;color:var(--blue);border:none;border-radius:9px;padding:5px 10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.76rem;cursor:pointer;}
-  .chbtn:hover{background:#dde6ff;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-primary{background:var(--grass);color:#fff;border:none;border-radius:50px;padding:10px 22px;font-family:'Fredoka One',cursive;font-size:.95rem;cursor:pointer;box-shadow:0 4px 0 #04a67d;flex:1;transition:all .18s;}
+.btn-primary:hover{transform:translateY(-2px);}
+.btn-secondary{background:#f1f5ff;color:var(--blue);border:2px solid #d0dcff;border-radius:50px;padding:9px 18px;font-family:'Fredoka One',cursive;font-size:.88rem;cursor:pointer;}
+.btn-secondary:hover{background:#dde6ff;}
 
-  /* READER */
-  .reader{margin-top:12px;display:none;}
-  .reader.show{display:block;}
+/* READER */
+#readerSection{display:none;}
+#readerSection.show{display:block;}
 
-  .prog{background:#fff;border-radius:13px;padding:9px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;box-shadow:0 3px 12px rgba(0,0,0,.06);}
-  .plbl{font-weight:800;font-size:.78rem;color:var(--muted);white-space:nowrap;}
-  .pbg{flex:1;height:11px;background:#e8f0fe;border-radius:99px;overflow:hidden;}
-  .pfill{height:100%;background:linear-gradient(90deg,var(--grass),var(--blue));border-radius:99px;transition:width .4s ease;width:0%;}
-  .ppct{font-family:'Fredoka One',cursive;font-size:.88rem;color:var(--blue);min-width:34px;text-align:right;}
+.bookbar{background:#fff;border-radius:16px;padding:10px 15px;margin-bottom:10px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 15px rgba(0,0,0,.07);}
+.bico{width:34px;height:44px;background:linear-gradient(135deg,#9B5DE5,var(--blue));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.bname{flex:1;font-weight:800;font-size:.84rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bcount{font-size:.73rem;color:var(--muted);font-weight:600;margin-top:1px;}
+.chbtn{background:#f1f5ff;color:var(--blue);border:none;border-radius:9px;padding:5px 10px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.76rem;cursor:pointer;}
 
-  /* DIAGNOSTIC */
-  .diag{background:#111827;border-radius:13px;padding:9px 12px;margin-bottom:10px;font-family:monospace;font-size:.73rem;}
-  .dtitle{color:#9ca3af;font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
-  .drow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
-  .dcol h4{font-size:.66rem;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;font-family:'Nunito',sans-serif;font-weight:800;}
-  .hl{color:#FFD166;}.el{color:#818cf8;}.ml{color:#06D6A0;}
-  .dwords{color:#e5e7eb;line-height:1.6;}
-  .dwords .hw{color:#FFD166;font-weight:bold;}
-  .dwords .ew{color:#a5b4fc;}
-  .dwords .mw{color:#06D6A0;font-weight:bold;}
-  .dwords .xw{color:#f87171;}
-  .dstatus{color:#9ca3af;font-style:italic;font-size:.7rem;margin-top:5px;}
+.prog{background:#fff;border-radius:13px;padding:9px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;box-shadow:0 3px 12px rgba(0,0,0,.06);}
+.plbl{font-weight:800;font-size:.78rem;color:var(--muted);white-space:nowrap;}
+.pbg{flex:1;height:11px;background:#e8f0fe;border-radius:99px;overflow:hidden;}
+.pfill{height:100%;background:linear-gradient(90deg,var(--grass),var(--blue));border-radius:99px;transition:width .4s ease;width:0%;}
+.ppct{font-family:'Fredoka One',cursive;font-size:.88rem;color:var(--blue);min-width:34px;text-align:right;}
 
-  /* BOOK TEXT */
-  .booktext{background:#fff;border-radius:20px;padding:20px;min-height:110px;box-shadow:0 5px 22px rgba(0,0,0,.07);margin-bottom:10px;line-height:2.1;font-size:clamp(.96rem,2.5vw,1.2rem);font-weight:600;color:#374151;}
-  .w{display:inline-block;margin:2px 2px;padding:1px 4px;border-radius:5px;}
-  .w.done{color:#d1d5db;}
-  .w.now{background:var(--sun);color:var(--text);transform:scale(1.08);border-radius:7px;box-shadow:0 2px 12px rgba(255,209,102,.5);animation:gw 1.2s ease-in-out infinite;}
-  @keyframes gw{0%,100%{box-shadow:0 2px 12px rgba(255,209,102,.5)}50%{box-shadow:0 2px 22px rgba(255,209,102,.85)}}
+/* DIAGNOSTIC */
+.diag{background:#111827;border-radius:13px;padding:10px 13px;margin-bottom:10px;font-family:monospace;font-size:.73rem;}
+.dtitle{color:#9ca3af;font-family:'Nunito',sans-serif;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.drow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.dcol h4{font-size:.66rem;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px;font-family:'Nunito',sans-serif;font-weight:800;}
+.hl{color:#FFD166;}.el{color:#818cf8;}.ml{color:#06D6A0;}
+.dwords{color:#e5e7eb;line-height:1.6;word-break:break-all;}
+.hw{color:#FFD166;font-weight:bold;}
+.ew{color:#a5b4fc;}
+.mw{color:#06D6A0;font-weight:bold;}
+.xw{color:#f87171;}
+.dstatus{color:#9ca3af;font-style:italic;font-size:.7rem;margin-top:5px;}
 
-  /* HINT */
-  .hintbox{background:linear-gradient(135deg,#fff8e7,#fffbf0);border:3px solid var(--sun);border-radius:20px;padding:14px 18px;text-align:center;margin-bottom:10px;box-shadow:0 5px 18px rgba(255,209,102,.2);display:none;}
-  .hintbox.show{display:block;animation:pop .35s cubic-bezier(.34,1.56,.64,1);}
-  @keyframes pop{from{transform:scale(.82) translateY(8px);opacity:0}to{transform:scale(1);opacity:1}}
-  .hico{font-size:1.7rem;display:block;margin-bottom:3px;}
-  .htag{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#c8820a;margin-bottom:2px;}
-  .hword{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--text);letter-spacing:3px;}
-  .hsub{font-size:.78rem;color:#a07020;font-weight:600;margin-top:3px;}
-  .sagain{margin-top:9px;background:var(--sun);border:none;border-radius:50px;padding:6px 18px;font-family:'Fredoka One',cursive;font-size:.88rem;cursor:pointer;color:var(--text);box-shadow:0 3px 0 #c8820a;transition:all .18s;}
-  .sagain:hover{transform:translateY(-2px);box-shadow:0 5px 0 #c8820a;}
+/* BOOK TEXT */
+.booktext{background:#fff;border-radius:20px;padding:20px;min-height:110px;box-shadow:0 5px 22px rgba(0,0,0,.07);margin-bottom:10px;line-height:2.1;font-size:clamp(.96rem,2.5vw,1.2rem);font-weight:600;color:#374151;}
+.w{display:inline-block;margin:2px 2px;padding:1px 4px;border-radius:5px;}
+.w.done{color:#d1d5db;}
+.w.now{background:var(--sun);color:var(--text);transform:scale(1.08);border-radius:7px;box-shadow:0 2px 12px rgba(255,209,102,.5);animation:gw 1.2s ease-in-out infinite;}
+@keyframes gw{0%,100%{box-shadow:0 2px 12px rgba(255,209,102,.5)}50%{box-shadow:0 2px 22px rgba(255,209,102,.85)}}
 
-  /* BIG BUTTON */
-  .btnarea{display:flex;flex-direction:column;align-items:center;gap:11px;margin:16px 0;}
-  .bigbtn{width:115px;height:115px;border-radius:50%;border:none;cursor:pointer;font-size:2.4rem;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;background:var(--grass);box-shadow:0 7px 0 #04a67d,0 11px 26px rgba(6,214,160,.3);}
-  .bigbtn:hover{transform:translateY(-4px);box-shadow:0 11px 0 #04a67d,0 17px 34px rgba(6,214,160,.38);}
-  .bigbtn:active{transform:translateY(3px);box-shadow:0 3px 0 #04a67d;}
-  .bigbtn.on{background:var(--berry);box-shadow:0 7px 0 #c03058,0 11px 26px rgba(239,71,111,.3);animation:lp 1.6s ease-in-out infinite;}
-  @keyframes lp{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
-  .bigbtn.on::before,.bigbtn.on::after{content:'';position:absolute;border-radius:50%;border:3px solid var(--berry);animation:rg 1.8s ease-out infinite;}
-  .bigbtn.on::after{animation-delay:.9s;}
-  @keyframes rg{0%{inset:0;opacity:.7}100%{inset:-34px;opacity:0}}
-  .blbl{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--text);}
+/* HINT */
+.hintbox{background:linear-gradient(135deg,#fff8e7,#fffbf0);border:3px solid var(--sun);border-radius:20px;padding:14px 18px;text-align:center;margin-bottom:10px;box-shadow:0 5px 18px rgba(255,209,102,.2);display:none;}
+.hintbox.show{display:block;animation:pop .35s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(.82) translateY(8px);opacity:0}to{transform:scale(1);opacity:1}}
+.hico{font-size:1.7rem;display:block;margin-bottom:3px;}
+.htag{font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#c8820a;margin-bottom:2px;}
+.hword{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--text);letter-spacing:3px;}
+.hsub{font-size:.78rem;color:#a07020;font-weight:600;margin-top:3px;}
+.sagain{margin-top:9px;background:var(--sun);border:none;border-radius:50px;padding:6px 18px;font-family:'Fredoka One',cursive;font-size:.88rem;cursor:pointer;color:var(--text);box-shadow:0 3px 0 #c8820a;}
 
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-  .stat{background:#fff;border-radius:14px;padding:11px 6px;text-align:center;box-shadow:0 3px 11px rgba(0,0,0,.06);}
-  .sico{font-size:1.2rem;display:block;}
-  .sval{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--blue);line-height:1.2;display:block;}
-  .slbl{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+/* BIG BUTTON */
+.btnarea{display:flex;flex-direction:column;align-items:center;gap:11px;margin:16px 0;}
+.bigbtn{width:115px;height:115px;border-radius:50%;border:none;cursor:pointer;font-size:2.4rem;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;background:var(--grass);box-shadow:0 7px 0 #04a67d,0 11px 26px rgba(6,214,160,.3);}
+.bigbtn:hover{transform:translateY(-4px);}
+.bigbtn:active{transform:translateY(3px);}
+.bigbtn.on{background:var(--berry);box-shadow:0 7px 0 #c03058,0 11px 26px rgba(239,71,111,.3);animation:lp 1.6s ease-in-out infinite;}
+@keyframes lp{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.bigbtn.on::before,.bigbtn.on::after{content:'';position:absolute;border-radius:50%;border:3px solid var(--berry);animation:rg 1.8s ease-out infinite;}
+.bigbtn.on::after{animation-delay:.9s;}
+@keyframes rg{0%{inset:0;opacity:.7}100%{inset:-34px;opacity:0}}
+.blbl{font-family:'Fredoka One',cursive;font-size:1rem;color:var(--text);}
 
-  .celebrate{position:fixed;inset:0;background:rgba(255,255,255,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:100;backdrop-filter:blur(8px);}
-  .celebrate.show{display:flex;animation:fi .4s ease;}
-  @keyframes fi{from{opacity:0}to{opacity:1}}
-  .celebrate h2{font-family:'Fredoka One',cursive;font-size:2.4rem;color:var(--blue);text-align:center;margin:12px 0 8px;}
-  .cico{font-size:3.3rem;animation:sp 1.4s linear infinite;display:block;}
-  .celebrate button{margin-top:18px;background:var(--grass);color:#fff;border:none;border-radius:50px;padding:11px 32px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 6px 0 #04a67d;}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.stat{background:#fff;border-radius:14px;padding:11px 6px;text-align:center;box-shadow:0 3px 11px rgba(0,0,0,.06);}
+.sico{font-size:1.2rem;display:block;}
+.sval{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--blue);line-height:1.2;display:block;}
+.slbl{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+
+.celebrate{position:fixed;inset:0;background:rgba(255,255,255,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:100;backdrop-filter:blur(8px);}
+.celebrate.show{display:flex;}
+.celebrate h2{font-family:'Fredoka One',cursive;font-size:2.4rem;color:var(--blue);text-align:center;margin:12px 0 8px;}
+.cico{font-size:3.3rem;animation:sp 1.4s linear infinite;display:block;}
+.celebrate button{margin-top:18px;background:var(--grass);color:#fff;border:none;border-radius:50px;padding:11px 32px;font-family:'Fredoka One',cursive;font-size:1.1rem;cursor:pointer;box-shadow:0 6px 0 #04a67d;}
 </style>
 </head>
 <body>
@@ -141,10 +143,13 @@
 </header>
 
 <div class="app">
+  <!-- Error log — shows JS errors visibly on screen -->
+  <div id="errorLog"></div>
+
   <div class="warn" id="warn">⚠️ Please use <strong>Chrome or Edge</strong> — voice won't work in other browsers!</div>
 
-  <!-- Upload -->
-  <div class="upload" id="uploadZone">
+  <!-- STEP 1: Upload -->
+  <div class="card upload" id="uploadZone">
     <input type="file" id="pdfInput" accept=".pdf"/>
     <span class="ico">📚</span>
     <h2>Upload Your Book!</h2>
@@ -152,43 +157,45 @@
     <span class="ucta">Choose a Book</span>
   </div>
 
-  <div class="loading" id="loading"><span class="spin"></span> Analyzing your book…</div>
+  <div class="loading" id="loading"><span class="spin"></span> Reading your book…</div>
 
-  <!-- ── STORY FINDER — parent picks where story starts ── -->
-  <div class="finder" id="finder">
-    <h3>📍 Where does the story start?</h3>
-    <p>Books often have title pages, copyright info, and tables of contents before the real story. Tap the page where the actual story text begins. We've highlighted our best guess in yellow.</p>
-    <div class="pages-grid" id="pagesGrid"></div>
-    <div class="finder-actions">
-      <button class="btn-start" onclick="confirmStart()">✅ Start reading from here!</button>
-      <button class="btn-manual" onclick="useFirstPage()">Use page 1 instead</button>
+  <!-- STEP 2: Pick the page where the story starts -->
+  <div id="pickerSection">
+    <div class="card">
+      <div class="picker-header">
+        <h3>📍 Where does the story start?</h3>
+        <p>Books have title pages and copyright info before the real story. Tap the page where the actual story words begin. ⭐ = our best guess.</p>
+      </div>
+      <div class="page-list" id="pageList"></div>
+      <div class="btn-row">
+        <button class="btn-primary" onclick="confirmStart()">✅ Start reading from selected page!</button>
+        <button class="btn-secondary" onclick="startFromPage(0)">Use page 1</button>
+      </div>
     </div>
   </div>
 
-  <!-- Book bar -->
-  <div class="bookbar hidden" id="bookBar">
-    <div class="bico">📖</div>
-    <div style="flex:1;min-width:0">
-      <div class="bname" id="bookName">—</div>
-      <div class="bcount" id="bookCount">—</div>
+  <!-- STEP 3: Reading -->
+  <div id="readerSection">
+    <div class="bookbar">
+      <div class="bico">📖</div>
+      <div style="flex:1;min-width:0">
+        <div class="bname" id="bookName">—</div>
+        <div class="bcount" id="bookCount">—</div>
+      </div>
+      <button class="chbtn" onclick="resetAll()">Change Book</button>
     </div>
-    <button class="chbtn" id="changeBtn">Change Book</button>
-  </div>
 
-  <!-- Reader -->
-  <div class="reader" id="reader">
     <div class="prog">
       <span class="plbl">📖 Progress</span>
       <div class="pbg"><div class="pfill" id="progFill"></div></div>
       <span class="ppct" id="progPct">0%</span>
     </div>
 
-    <!-- Diagnostic panel -->
-    <div class="diag" id="diag">
+    <div class="diag">
       <div class="dtitle">🎙️ Live Mic Diagnostic</div>
       <div class="drow">
         <div class="dcol"><h4 class="hl">Mic Heard</h4><div class="dwords" id="diagHeard">—</div></div>
-        <div class="dcol"><h4 class="el">Expected Word</h4><div class="dwords" id="diagExpect">—</div></div>
+        <div class="dcol"><h4 class="el">Expected</h4><div class="dwords" id="diagExpect">—</div></div>
         <div class="dcol"><h4 class="ml">Match?</h4><div class="dwords" id="diagResult">—</div></div>
       </div>
       <div class="dstatus" id="diagStatus">Start reading to see results…</div>
@@ -226,516 +233,531 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════
+// ── catch ALL errors and show them on screen ──
+window.onerror = function(msg, src, line, col, err) {
+  var el = document.getElementById('errorLog');
+  el.style.display = 'block';
+  el.textContent += 'ERROR: ' + msg + ' (line ' + line + ')\n';
+};
+window.addEventListener('unhandledrejection', function(e) {
+  var el = document.getElementById('errorLog');
+  el.style.display = 'block';
+  el.textContent += 'PROMISE ERROR: ' + (e.reason || e) + '\n';
+});
+
+// ══════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════
-let allPages     = [];   // [{pageNum, text, words}] — every page extracted
-let words        = [];   // final word list from selected start page onward
-let selectedPage = 0;    // index into allPages where story starts
-let idx          = 0;
-let listening    = false;
-let recog        = null;
-let hintTimer    = null;
-let hintStep     = 0;
-let nW=0,nH=0,nS=0;
-let lastSpeakTime = 0;
-let lastHeard     = [];
+// ══════════════════════════════════════
+var allPages     = [];   // [{num, text, words}]
+var words        = [];   // active word list
+var selectedIdx  = 0;    // which page user selected
+var idx          = 0;
+var listening    = false;
+var recog        = null;
+var hintTimer    = null;
+var hintStep     = 0;
+var nW=0, nH=0, nS=0;
+var lastSpeakTime = 0;
+var lastHeard     = [];
+var currentFile   = null;
 
-const HINT_DELAY = 4000;  // 4s silence → hint
-const HINT_NEXT  = 5000;  // 5s → next hint
+var HINT_DELAY = 4000;
+var HINT_NEXT  = 5000;
 
-// ═══════════════════════════════════════
-//  PDF.JS SETUP
-// ═══════════════════════════════════════
+// ══════════════════════════════════════
+//  PDF.JS
+// ══════════════════════════════════════
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-window.addEventListener('load', ()=>{
-  const loadV=()=>speechSynthesis.getVoices();
-  speechSynthesis.onvoiceschanged=loadV; loadV();
-  setTimeout(loadV,500); setTimeout(loadV,1500);
-  const ua=navigator.userAgent;
-  if(!(/Chrome/.test(ua)&&/Google Inc/.test(navigator.vendor))&&!/Edg/.test(ua))
+window.addEventListener('load', function() {
+  try {
+    var loadV = function(){ speechSynthesis.getVoices(); };
+    speechSynthesis.onvoiceschanged = loadV;
+    loadV(); setTimeout(loadV,500); setTimeout(loadV,1500);
+  } catch(e) {}
+
+  var ua = navigator.userAgent;
+  if (!(/Chrome/.test(ua) && /Google Inc/.test(navigator.vendor)) && !/Edg/.test(ua)) {
     document.getElementById('warn').classList.add('show');
+  }
 });
 
-// ═══════════════════════════════════════
-//  PDF UPLOAD
-// ═══════════════════════════════════════
-const zone=document.getElementById('uploadZone');
-const inp=document.getElementById('pdfInput');
-zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
-zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
-zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('over');if(e.dataTransfer.files[0]) loadPDF(e.dataTransfer.files[0]);});
-inp.addEventListener('change',e=>{if(e.target.files[0]) loadPDF(e.target.files[0]);});
+// ══════════════════════════════════════
+//  UPLOAD HANDLERS
+// ══════════════════════════════════════
+var zone = document.getElementById('uploadZone');
+var inp  = document.getElementById('pdfInput');
 
-async function loadPDF(file){
-  if(!file.name.toLowerCase().endsWith('.pdf')){alert('Please choose a PDF!');return;}
-  document.getElementById('loading').classList.add('show');
-  zone.style.display='none';
+zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('over'); });
+zone.addEventListener('dragleave', function(){ zone.classList.remove('over'); });
+zone.addEventListener('drop', function(e){
+  e.preventDefault(); zone.classList.remove('over');
+  if (e.dataTransfer.files[0]) loadPDF(e.dataTransfer.files[0]);
+});
+inp.addEventListener('change', function(e){
+  if (e.target.files[0]) loadPDF(e.target.files[0]);
+});
 
-  try{
-    const buf=await file.arrayBuffer();
-    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+// ══════════════════════════════════════
+//  PDF LOADING — one page at a time
+// ══════════════════════════════════════
+async function loadPDF(file) {
+  try {
+    currentFile = file;
+    document.getElementById('loading').classList.add('show');
+    zone.style.display = 'none';
+    allPages = [];
 
-    allPages=[];
-    for(let p=1;p<=pdf.numPages;p++){
-      const pg=await pdf.getPage(p);
-      const ct=await pg.getTextContent();
-      // Join items, preserve spacing
-      const text=ct.items.map(i=>i.str).join(' ').replace(/\s+/g,' ').trim();
-      const pageWords=text.split(' ').filter(w=>w.trim().length>0);
-      allPages.push({ pageNum:p, text, words:pageWords });
+    var buf = await file.arrayBuffer();
+    var pdf = await pdfjsLib.getDocument({data: buf}).promise;
+
+    logStatus('PDF loaded: ' + pdf.numPages + ' pages');
+
+    for (var p = 1; p <= pdf.numPages; p++) {
+      var pg   = await pdf.getPage(p);
+      var ct   = await pg.getTextContent();
+      var text = ct.items.map(function(i){ return i.str; }).join(' ').replace(/\s+/g,' ').trim();
+      var pageWords = text.split(' ').filter(function(w){ return w.trim().length > 0; });
+      allPages.push({ num: p, text: text, words: pageWords });
     }
-  } catch(e){
-    alert('Could not read that PDF. Please try another file.');
-    zone.style.display=''; document.getElementById('loading').classList.remove('show');
-    return;
+
+    logStatus('Extracted ' + allPages.length + ' pages');
+    document.getElementById('loading').classList.remove('show');
+
+    buildPagePicker();
+
+  } catch(e) {
+    document.getElementById('errorLog').style.display = 'block';
+    document.getElementById('errorLog').textContent += 'PDF Error: ' + e.message + '\n';
+    document.getElementById('loading').classList.remove('show');
+    zone.style.display = '';
   }
-
-  document.getElementById('loading').classList.remove('show');
-
-  // Auto-detect story start and show picker
-  selectedPage = detectStoryStart(allPages);
-  showPagePicker(file.name);
 }
 
-// ═══════════════════════════════════════
-//  STORY START DETECTION
-// ═══════════════════════════════════════
-
-// Words that strongly suggest front-matter (NOT story text)
-const FRONTMATTER_SIGNALS = [
-  'copyright','©','isbn','publisher','published','edition','rights reserved',
-  'all rights','printed','library of congress','cataloging','dedication',
-  'acknowledgment','acknowledgement','foreword','preface','introduction',
-  'contents','chapter','table of','first published','first edition',
-  'illustrated','illustrations by','written by','author','www.','http',
-  '.com','.org','printed in','manufactured','for information','address',
-  'permissions','visit our','website','catalogued','dewey','hardcover',
-  'paperback','ebook','kindle','trademark','registered','inc.','ltd.',
-  'llc','corp.','new york','london','publishing','press','books',
-  'translation','translated','originally published'
-];
-
-// Words that strongly suggest real story text
-const STORY_SIGNALS = [
-  'once','the','and','was','were','had','they','their','he','she','it',
-  'but','when','then','said','asked','called','looked','walked','ran',
-  'came','went','thought','felt','knew','saw','heard','little','big',
-  'one day','long ago','there was','there were','lived','found'
-];
-
-function detectStoryStart(pages){
-  let bestScore = -Infinity;
-  let bestIdx   = 0;
-
-  for(let i=0;i<pages.length;i++){
-    const page = pages[i];
-    if(page.words.length < 20) continue; // skip near-empty pages
-
-    const textLower = page.text.toLowerCase();
-    const wordCount = page.words.length;
-
-    let score = 0;
-
-    // Reward pages with more words (more likely to be story)
-    score += Math.min(wordCount, 200) * 0.5;
-
-    // Penalise front-matter signals heavily
-    for(const signal of FRONTMATTER_SIGNALS){
-      if(textLower.includes(signal)) score -= 30;
-    }
-
-    // Reward story signals
-    for(const signal of STORY_SIGNALS){
-      if(textLower.includes(signal)) score += 8;
-    }
-
-    // Penalise if page has lots of numbers (page numbers, ISBNs, dates)
-    const numberRatio = (page.text.match(/\d/g)||[]).length / Math.max(page.text.length,1);
-    if(numberRatio > 0.05) score -= 40;
-
-    // Penalise very short lines (title pages, tables of contents)
-    const lines = page.text.split(/\n|  {2,}/).filter(l=>l.trim().length>0);
-    const avgLineLen = lines.reduce((s,l)=>s+l.trim().length,0) / Math.max(lines.length,1);
-    if(avgLineLen < 20) score -= 25;
-
-    // Reward pages closer to the start (but not the very first page)
-    if(i===0) score -= 20;         // page 1 is usually title page
-    if(i>=1 && i<=3) score += 10;  // pages 2-4 likely story for short books
-    if(i>10) score -= i * 2;       // penalise very late pages
-
-    if(score > bestScore){ bestScore=score; bestIdx=i; }
-  }
-
-  return bestIdx;
+function logStatus(msg) {
+  console.log('[ReadBuddy] ' + msg);
 }
 
-// ═══════════════════════════════════════
-//  PAGE PICKER UI
-// ═══════════════════════════════════════
-function showPagePicker(filename){
-  const grid = document.getElementById('pagesGrid');
-  grid.innerHTML='';
+// ══════════════════════════════════════
+//  PAGE PICKER — simple and robust
+// ══════════════════════════════════════
 
-  allPages.forEach((page,i)=>{
-    const card = document.createElement('div');
-    card.className = 'page-card' + (i===selectedPage?' selected auto-pick':'');
-    card.dataset.idx = i;
+var FRONT_WORDS = ['copyright','isbn','publisher','published','edition','rights','printed',
+  'library','cataloging','dedication','acknowledgment','foreword','preface','contents',
+  'illustrated','www','http','.com','trademark','registered','inc','ltd','corp',
+  'hardcover','paperback','ebook','translation'];
 
-    // Preview: first 120 chars of text
-    const preview = page.text.slice(0,140).replace(/\s+/g,' ');
+var STORY_WORDS = ['once','was','were','had','they','their','said','asked','called',
+  'looked','walked','ran','came','went','thought','felt','saw','heard','little','big'];
 
-    // Label: front-matter signal detection for badge
-    const textLower = page.text.toLowerCase();
-    const isFront   = FRONTMATTER_SIGNALS.some(s=>textLower.includes(s));
-    const badge      = i===selectedPage
-      ? `<span class="page-badge badge-auto">⭐ Our best guess</span>`
+function scorePageAsStory(page) {
+  if (page.words.length < 15) return -999;
+  var score = page.words.length;
+  var low = page.text.toLowerCase();
+  FRONT_WORDS.forEach(function(w){ if (low.indexOf(w) >= 0) score -= 40; });
+  STORY_WORDS.forEach(function(w){ if (low.indexOf(w) >= 0) score += 15; });
+  var nums = (page.text.match(/\d/g) || []).length;
+  if (nums / Math.max(page.text.length,1) > 0.04) score -= 50;
+  return score;
+}
+
+function buildPagePicker() {
+  var list = document.getElementById('pageList');
+  list.innerHTML = '';
+
+  // Find best page
+  var bestScore = -Infinity;
+  var bestIdx = 0;
+  allPages.forEach(function(page, i) {
+    if (i === 0) return; // skip page 1 (usually title)
+    var s = scorePageAsStory(page);
+    if (s > bestScore) { bestScore = s; bestIdx = i; }
+  });
+  selectedIdx = bestIdx;
+
+  // Build list items
+  allPages.forEach(function(page, i) {
+    var isGuess = (i === bestIdx);
+    var low = page.text.toLowerCase();
+    var isFront = FRONT_WORDS.some(function(w){ return low.indexOf(w) >= 0; });
+    var isStory = !isFront && page.words.length > 30;
+
+    var item = document.createElement('div');
+    item.className = 'page-item' + (isGuess ? ' selected guess' : '');
+    item.dataset.pageIdx = i;
+
+    var label = isGuess
+      ? '<span class="page-label label-guess">⭐ Best guess for story start</span>'
       : isFront
-        ? `<span class="page-badge badge-skip">⚠️ Likely front matter</span>`
-        : '';
+        ? '<span class="page-label label-front">⚠️ Likely front matter</span>'
+        : isStory
+          ? '<span class="page-label label-story">📖 Possible story page</span>'
+          : '';
 
-    card.innerHTML=`
-      ${badge}
-      <div class="page-num">Page ${page.pageNum} · ${page.words.length} words</div>
-      <div class="page-preview">${esc(preview)}…</div>
-    `;
+    var preview = page.text.slice(0, 160).replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-    card.addEventListener('click',()=>{
-      document.querySelectorAll('.page-card').forEach(c=>c.classList.remove('selected'));
-      card.classList.add('selected');
-      selectedPage=i;
+    item.innerHTML =
+      '<div class="page-num-badge">Page ' + page.num + ' · ' + page.words.length + ' words</div>' +
+      '<div class="page-info">' +
+        label +
+        '<div class="page-preview">' + preview + '…</div>' +
+      '</div>';
+
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.page-item').forEach(function(el){
+        el.classList.remove('selected');
+      });
+      item.classList.add('selected');
+      selectedIdx = i;
     });
 
-    grid.appendChild(card);
+    list.appendChild(item);
   });
 
-  document.getElementById('finder').classList.add('show');
+  // Show picker
+  document.getElementById('pickerSection').style.display = 'block';
 }
 
-function confirmStart(){
-  startReading(selectedPage);
+function confirmStart() {
+  startFromPage(selectedIdx);
 }
 
-function useFirstPage(){
-  selectedPage=0;
-  startReading(0);
-}
+function startFromPage(pageIdx) {
+  // Combine all words from selected page to end of book
+  words = [];
+  for (var i = pageIdx; i < allPages.length; i++) {
+    allPages[i].words.forEach(function(w){
+      if (w.trim().length > 0) words.push(w);
+    });
+  }
 
-function startReading(pageIdx){
-  // Combine text from selected page to end of book
-  words = allPages.slice(pageIdx).flatMap(p=>p.words).filter(w=>w.trim().length>0);
+  logStatus('Starting from page ' + allPages[pageIdx].num + ' with ' + words.length + ' words');
+  logStatus('First 10 words: ' + words.slice(0,10).join(' | '));
 
-  document.getElementById('finder').classList.remove('show');
-  document.getElementById('bookBar').classList.remove('hidden');
-  document.getElementById('bookName').textContent = document.getElementById('pdfInput').files[0]?.name.replace(/\.pdf$/i,'')||'Book';
-  document.getElementById('bookCount').textContent = `${words.length.toLocaleString()} words · starting from PDF page ${allPages[pageIdx].pageNum}`;
-  document.getElementById('reader').classList.add('show');
+  document.getElementById('pickerSection').style.display = 'none';
+  document.getElementById('bookName').textContent = currentFile.name.replace(/\.pdf$/i,'');
+  document.getElementById('bookCount').textContent =
+    words.length.toLocaleString() + ' words · starting from PDF page ' + allPages[pageIdx].num;
+  document.getElementById('readerSection').style.display = 'block';
 
-  idx=0; hintStep=0; nW=0; nH=0; nS=0;
+  idx = 0; hintStep = 0; nW = 0; nH = 0; nS = 0;
   updateStats(); hideHint();
   renderText();
-  updateDiag([],0);
+  updateDiag([], 0);
 }
 
-document.getElementById('changeBtn').addEventListener('click',()=>{
-  stopListen();
-  zone.style.display='';
-  document.getElementById('bookBar').classList.add('hidden');
-  document.getElementById('reader').classList.remove('show');
-  document.getElementById('finder').classList.remove('show');
-  inp.value=''; words=[]; idx=0; allPages=[];
-});
-
-// ═══════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════
-function renderText(){
-  const el=document.getElementById('bookText');
-  const s=Math.max(0,idx-8), e=Math.min(words.length,idx+40);
-  let html=s>0?'<span style="color:#d1d5db;font-size:.8em">… </span>':'';
-  for(let i=s;i<e;i++){
-    const cls=i<idx?'done':i===idx?'now':'';
-    html+=`<span class="w ${cls}">${esc(words[i])}</span> `;
+// ══════════════════════════════════════
+//  RENDER TEXT
+// ══════════════════════════════════════
+function renderText() {
+  var el = document.getElementById('bookText');
+  var s  = Math.max(0, idx - 8);
+  var e  = Math.min(words.length, idx + 40);
+  var html = s > 0 ? '<span style="color:#d1d5db;font-size:.8em">… </span>' : '';
+  for (var i = s; i < e; i++) {
+    var cls = i < idx ? 'done' : i === idx ? 'now' : '';
+    html += '<span class="w ' + cls + '">' + esc(words[i]) + '</span> ';
   }
-  if(e<words.length) html+='<span style="color:#d1d5db;font-size:.8em"> …</span>';
-  el.innerHTML=html;
-  const cur=el.querySelector('.w.now');
-  if(cur) cur.scrollIntoView({block:'nearest',behavior:'smooth'});
+  if (e < words.length) html += '<span style="color:#d1d5db;font-size:.8em"> …</span>';
+  el.innerHTML = html;
+  var cur = el.querySelector('.w.now');
+  if (cur) cur.scrollIntoView({block:'nearest', behavior:'smooth'});
   updateProg();
 }
 
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function updateProg(){
-  const pct=words.length?Math.round(idx/words.length*100):0;
-  document.getElementById('progFill').style.width=pct+'%';
-  document.getElementById('progPct').textContent=pct+'%';
+  var pct = words.length ? Math.round(idx/words.length*100) : 0;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent  = pct + '%';
 }
 
-// ═══════════════════════════════════════
+// ══════════════════════════════════════
 //  DIAGNOSTIC
-// ═══════════════════════════════════════
-function updateDiag(heardArr, curIdx){
-  const expected=curIdx<words.length?clean(words[curIdx]):'(end)';
-  document.getElementById('diagExpect').innerHTML=
-    `<span class="ew">${expected}</span>`+
-    (curIdx+1<words.length?` <span style="color:#6b7280;font-size:.85em">then: ${clean(words[curIdx+1])}</span>`:'');
+// ══════════════════════════════════════
+function updateDiag(heardArr, curIdx) {
+  var expected = curIdx < words.length ? clean(words[curIdx]) : '(end)';
+  var nextWord  = curIdx+1 < words.length ? clean(words[curIdx+1]) : '';
 
-  if(!heardArr.length){
-    document.getElementById('diagHeard').innerHTML='<span style="color:#6b7280">—</span>';
-    document.getElementById('diagResult').innerHTML='<span style="color:#6b7280">—</span>';
-    document.getElementById('diagStatus').textContent='Waiting for speech…';
+  document.getElementById('diagExpect').innerHTML =
+    '<span class="ew">' + expected + '</span>' +
+    (nextWord ? ' <span style="color:#6b7280;font-size:.85em">then: ' + nextWord + '</span>' : '');
+
+  if (!heardArr.length) {
+    document.getElementById('diagHeard').innerHTML  = '<span style="color:#6b7280">—</span>';
+    document.getElementById('diagResult').innerHTML = '<span style="color:#6b7280">—</span>';
+    document.getElementById('diagStatus').textContent = 'Waiting for speech…';
     return;
   }
-  document.getElementById('diagHeard').innerHTML=
-    heardArr.map(w=>`<span class="hw">${w}</span>`).join(' ');
 
-  let resultHTML='', anyMatch=false;
-  for(const h of heardArr){
-    const m=matches(h,expected);
-    if(m) anyMatch=true;
-    resultHTML+=m
-      ?`<span class="mw">✓${h}</span> `
-      :`<span class="xw">✗${h}</span> `;
-  }
-  document.getElementById('diagResult').innerHTML=resultHTML;
+  document.getElementById('diagHeard').innerHTML =
+    heardArr.map(function(w){ return '<span class="hw">' + w + '</span>'; }).join(' ');
 
-  if(anyMatch){
-    document.getElementById('diagStatus').textContent='✅ Matched! Advancing word…';
+  var resultHTML = '', anyMatch = false;
+  heardArr.forEach(function(h) {
+    var m = matches(h, expected);
+    if (m) anyMatch = true;
+    resultHTML += m
+      ? '<span class="mw">✓' + h + '</span> '
+      : '<span class="xw">✗' + h + '</span> ';
+  });
+  document.getElementById('diagResult').innerHTML = resultHTML;
+
+  if (anyMatch) {
+    document.getElementById('diagStatus').textContent = '✅ Matched! Advancing…';
   } else {
-    const d=lev(heardArr[0],expected);
-    document.getElementById('diagStatus').textContent=
-      `No match. Heard "${heardArr[0]}", expected "${expected}" (edit dist=${d})`;
+    var d = lev(heardArr[0], expected);
+    document.getElementById('diagStatus').textContent =
+      'No match. Heard "' + heardArr[0] + '", need "' + expected + '" (edit dist=' + d + ')';
   }
 }
 
-// ═══════════════════════════════════════
+// ══════════════════════════════════════
 //  SPEECH RECOGNITION
-// ═══════════════════════════════════════
-function toggleListen(){ listening?stopListen():startListen(); }
+// ══════════════════════════════════════
+function toggleListen(){ listening ? stopListen() : startListen(); }
 
-function startListen(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){alert('Please use Chrome or Edge for voice support! 🎙️');return;}
-  recog=new SR();
-  recog.continuous=true;
-  recog.interimResults=true;
-  recog.lang='en-US';
-  recog.maxAlternatives=10;
-  recog.onresult=onResult;
-  recog.onerror=e=>{if(e.error!=='no-speech'&&e.error!=='aborted') document.getElementById('diagStatus').textContent='Mic error: '+e.error;};
-  recog.onend=()=>{if(listening){try{recog.start();}catch(e){}}};
-  try{recog.start();}catch(e){alert('Mic error: '+e.message);return;}
-  listening=true; lastSpeakTime=Date.now();
+function startListen() {
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Please use Chrome or Edge for voice support!'); return; }
+  recog = new SR();
+  recog.continuous      = true;
+  recog.interimResults  = true;
+  recog.lang            = 'en-US';
+  recog.maxAlternatives = 10;
+  recog.onresult = onResult;
+  recog.onerror  = function(e){
+    if (e.error !== 'no-speech' && e.error !== 'aborted')
+      document.getElementById('diagStatus').textContent = 'Mic error: ' + e.error;
+  };
+  recog.onend = function(){ if (listening) { try{ recog.start(); }catch(e){} } };
+  try { recog.start(); } catch(e) { alert('Mic error: '+e.message); return; }
+  listening = true;
+  lastSpeakTime = Date.now();
   document.getElementById('bigBtn').classList.add('on');
-  document.getElementById('bigBtn').textContent='⏹️';
-  document.getElementById('btnLbl').textContent="I'm Listening!";
+  document.getElementById('bigBtn').textContent = '⏹️';
+  document.getElementById('btnLbl').textContent = "I'm Listening!";
   armHint();
 }
 
-function stopListen(){
-  listening=false;
-  if(recog){try{recog.stop();}catch(e){} recog=null;}
+function stopListen() {
+  listening = false;
+  if (recog) { try{ recog.stop(); }catch(e){} recog = null; }
   clearHintTimer();
   document.getElementById('bigBtn').classList.remove('on');
-  document.getElementById('bigBtn').textContent='🎤';
-  document.getElementById('btnLbl').textContent='Start Reading!';
+  document.getElementById('bigBtn').textContent = '🎤';
+  document.getElementById('btnLbl').textContent = 'Start Reading!';
 }
 
-// ═══════════════════════════════════════
-//  MATCHING ENGINE
-// ═══════════════════════════════════════
-function onResult(event){
-  const pool=new Set();
-  for(let r=0;r<event.results.length;r++)
-    for(let a=0;a<event.results[r].length;a++)
-      event.results[r][a].transcript.toLowerCase()
-        .replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean)
-        .forEach(w=>pool.add(w));
+// ══════════════════════════════════════
+//  MATCHING
+// ══════════════════════════════════════
+function onResult(event) {
+  var pool = {};
+  for (var r = 0; r < event.results.length; r++) {
+    for (var a = 0; a < event.results[r].length; a++) {
+      event.results[r][a].transcript
+        .toLowerCase()
+        .replace(/[^a-z0-9'\s]/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach(function(w){ pool[w] = true; });
+    }
+  }
+  var heardArr = Object.keys(pool);
+  if (!heardArr.length) return;
 
-  if(!pool.size) return;
+  lastHeard = heardArr;
+  lastSpeakTime = Date.now();
+  updateDiag(heardArr, idx);
 
-  const heardArr=[...pool];
-  lastHeard=heardArr;
-  lastSpeakTime=Date.now();
-  updateDiag(heardArr,idx);
-
-  const LOOK=6;
-  let advance=-1;
+  var advance = -1;
   outer:
-  for(let off=0;off<LOOK&&idx+off<words.length;off++){
-    const target=clean(words[idx+off]);
-    for(const spoken of heardArr){
-      if(matches(spoken,target)){ advance=off; break outer; }
+  for (var off = 0; off < 6 && idx+off < words.length; off++) {
+    var target = clean(words[idx+off]);
+    for (var h = 0; h < heardArr.length; h++) {
+      if (matches(heardArr[h], target)) { advance = off; break outer; }
     }
   }
 
-  if(advance>=0){
-    for(let i=0;i<=advance;i++) advanceOne();
+  if (advance >= 0) {
+    for (var i = 0; i <= advance; i++) advanceOne();
     clearHintTimer(); armHint(); hideHint();
   }
 }
 
-function clean(w){return w.toLowerCase().replace(/[^a-z]/g,'');}
+function clean(w){ return w.toLowerCase().replace(/[^a-z]/g,''); }
 
-function matches(heard,expected){
-  if(!heard||!expected) return false;
-  if(expected.length===1) return heard===expected;
-  if(heard===expected) return true;
-  if(expected.includes(heard)&&heard.length>=3) return true;
-  if(heard.includes(expected)&&expected.length>=3) return true;
-  const shared=Math.min(heard.length,expected.length);
-  if(shared>=3&&heard.slice(0,shared)===expected.slice(0,shared)) return true;
-  const d=lev(heard,expected);
-  const maxD=expected.length<=3?1:expected.length<=5?2:expected.length<=8?3:4;
-  if(d<=maxD) return true;
-  if(expected.length>=4&&soundex(heard)===soundex(expected)) return true;
-  if(expected.length>=5){
-    const hc=noVowels(heard),ec=noVowels(expected);
-    if(hc.length>=2&&hc===ec) return true;
-    if(hc.length>=3&&ec.startsWith(hc.slice(0,3))) return true;
-    if(ec.length>=3&&hc.startsWith(ec.slice(0,3))) return true;
-  }
-  if(heard.length>=4&&expected.length>=4&&heard.slice(0,4)===expected.slice(0,4)) return true;
+function matches(heard, expected) {
+  if (!heard || !expected) return false;
+  if (expected.length === 1) return heard === expected;
+  if (heard === expected) return true;
+  if (expected.indexOf(heard) >= 0 && heard.length >= 3) return true;
+  if (heard.indexOf(expected) >= 0 && expected.length >= 3) return true;
+  var shared = Math.min(heard.length, expected.length);
+  if (shared >= 3 && heard.slice(0,shared) === expected.slice(0,shared)) return true;
+  var d = lev(heard, expected);
+  var maxD = expected.length<=3?1:expected.length<=5?2:expected.length<=8?3:4;
+  if (d <= maxD) return true;
+  if (expected.length >= 4 && soundex(heard) === soundex(expected)) return true;
+  if (heard.length >= 4 && expected.length >= 4 && heard.slice(0,4) === expected.slice(0,4)) return true;
   return false;
 }
 
-function noVowels(w){return w.replace(/[aeiou]/g,'');}
-
-function lev(a,b){
-  if(Math.abs(a.length-b.length)>5) return 99;
-  let prev=[...Array(b.length+1).keys()];
-  for(let i=1;i<=a.length;i++){
-    const cur=[i];
-    for(let j=1;j<=b.length;j++)
+function lev(a, b) {
+  if (Math.abs(a.length-b.length) > 5) return 99;
+  var prev = [];
+  for (var j=0;j<=b.length;j++) prev[j]=j;
+  for (var i=1;i<=a.length;i++) {
+    var cur=[i];
+    for (var j=1;j<=b.length;j++)
       cur[j]=a[i-1]===b[j-1]?prev[j-1]:1+Math.min(prev[j],cur[j-1],prev[j-1]);
     prev=cur;
   }
   return prev[b.length];
 }
 
-function soundex(s){
-  const m={b:1,f:1,p:1,v:1,c:2,g:2,j:2,k:2,q:2,s:2,x:2,z:2,d:3,t:3,l:4,m:5,n:5,r:6};
-  let r=s[0]?.toUpperCase()||'',prev=m[s[0]?.toLowerCase()]||0;
-  for(let i=1;i<s.length&&r.length<4;i++){
-    const c=m[s[i].toLowerCase()];
+function soundex(s) {
+  var m={b:1,f:1,p:1,v:1,c:2,g:2,j:2,k:2,q:2,s:2,x:2,z:2,d:3,t:3,l:4,m:5,n:5,r:6};
+  var r=(s[0]||'').toUpperCase(), prev=m[(s[0]||'').toLowerCase()]||0;
+  for(var i=1;i<s.length&&r.length<4;i++){
+    var c=m[s[i].toLowerCase()];
     if(c&&c!==prev) r+=c;
     prev=c||0;
   }
-  return r.padEnd(4,'0');
+  while(r.length<4) r+='0';
+  return r;
 }
 
-function advanceOne(){
-  nW++;nS++;idx++;hintStep=0;
-  hideHint();updateStats();
-  if(idx>=words.length){stopListen();celebrate();return;}
+function advanceOne() {
+  nW++; nS++; idx++;
+  hintStep = 0; hideHint(); updateStats();
+  if (idx >= words.length) { stopListen(); celebrate(); return; }
   renderText();
-  updateDiag(lastHeard,idx);
+  updateDiag(lastHeard, idx);
 }
 
-// ═══════════════════════════════════════
-//  HINT SYSTEM — silence-based polling
-// ═══════════════════════════════════════
-function armHint(){
+// ══════════════════════════════════════
+//  HINT SYSTEM
+// ══════════════════════════════════════
+function armHint() {
   clearHintTimer();
-  hintTimer=setInterval(()=>{
-    if(Date.now()-lastSpeakTime>=HINT_DELAY && listening && idx<words.length)
+  hintTimer = setInterval(function() {
+    if (Date.now() - lastSpeakTime >= HINT_DELAY && listening && idx < words.length)
       giveHint();
-  },500);
+  }, 500);
 }
-function clearHintTimer(){if(hintTimer){clearInterval(hintTimer);hintTimer=null;}}
+function clearHintTimer(){ if(hintTimer){ clearInterval(hintTimer); hintTimer=null; } }
 
-function giveHint(){
-  if(!listening||idx>=words.length) return;
-  nH++;nS=0;updateStats();
-  const raw=words[idx], word=clean(raw);
-  if(hintStep===0){
-    const snd=firstSound(word);
-    showHint('🔊','Sound Hint',snd+'…',`First sound: "${snd}"`,
-      `Hmm, let's try that word. It starts with the sound… ${snd}… ${snd}… Can you say the rest?`);
-  } else if(hintStep===1){
-    const syl=firstSyllable(word);
-    showHint('💬','Syllable Hint',syl+'-',`First part: "${syl}"`,
-      `Good try! The beginning sounds like… ${syl}… ${syl}… Can you finish the word?`);
+function giveHint() {
+  if (!listening || idx >= words.length) return;
+  nH++; nS=0; updateStats();
+  var raw  = words[idx];
+  var word = clean(raw);
+
+  if (hintStep === 0) {
+    var snd = firstSound(word);
+    showHint('🔊','Sound Hint', snd+'…', 'First sound: "'+snd+'"',
+      "Hmm, let's try that word. It starts with the sound… "+snd+"… "+snd+"… Can you say the rest?");
+  } else if (hintStep === 1) {
+    var syl = firstSyllable(word);
+    showHint('💬','Syllable Hint', syl+'-', 'First part: "'+syl+'"',
+      "Good try! The beginning sounds like… "+syl+"… "+syl+"… Can you finish the word?");
   } else {
-    showHint('🌟','The Word Is…',raw,'Try the whole word!',
-      `That's a tricky one! The word is… ${raw}… ${raw}. Can you say it? ${raw}!`);
-    hintStep=-1;
+    showHint('🌟','The Word Is…', raw, 'Try the whole word!',
+      "That's a tricky one! The word is… "+raw+"… "+raw+". Can you say it? "+raw+"!");
+    hintStep = -1;
   }
   hintStep++;
-  // Delay next hint by HINT_NEXT after this one finishes
-  lastSpeakTime=Date.now()-HINT_DELAY+HINT_NEXT;
+  lastSpeakTime = Date.now() - HINT_DELAY + HINT_NEXT;
 }
 
-function showHint(icon,tag,wordDisplay,sub,toSpeak){
-  document.getElementById('hintIcon').textContent=icon;
-  document.getElementById('hintTag').textContent=tag;
-  document.getElementById('hintWord').textContent=wordDisplay;
-  document.getElementById('hintSub').textContent=sub;
-  const box=document.getElementById('hintBox');
+function showHint(icon, tag, wordDisplay, sub, toSpeak) {
+  document.getElementById('hintIcon').textContent = icon;
+  document.getElementById('hintTag').textContent  = tag;
+  document.getElementById('hintWord').textContent = wordDisplay;
+  document.getElementById('hintSub').textContent  = sub;
+  var box = document.getElementById('hintBox');
   box.classList.remove('show'); void box.offsetWidth; box.classList.add('show');
   speak(toSpeak);
 }
 
-function hideHint(){document.getElementById('hintBox').classList.remove('show');}
+function hideHint(){ document.getElementById('hintBox').classList.remove('show'); }
 
-function sayAgain(){
-  const step=((hintStep-1)+3)%3;
-  const word=clean(words[idx]||'');
-  if(step===0) speak(`It starts with… ${firstSound(word)}… ${firstSound(word)}`);
-  else if(step===1) speak(`The beginning is… ${firstSyllable(word)}… ${firstSyllable(word)}`);
-  else speak(`The word is… ${words[idx]}… ${words[idx]}`);
+function sayAgain() {
+  var step = ((hintStep-1)+3)%3;
+  var word = clean(words[idx]||'');
+  if (step===0) speak('It starts with… '+firstSound(word)+'… '+firstSound(word));
+  else if (step===1) speak('The beginning is… '+firstSyllable(word)+'… '+firstSyllable(word));
+  else speak('The word is… '+(words[idx]||'')+'… '+(words[idx]||''));
 }
 
-function speak(text){
-  const synth=window.speechSynthesis;
+function speak(text) {
+  var synth = window.speechSynthesis;
   synth.cancel();
-  const u=new SpeechSynthesisUtterance(text);
+  var u = new SpeechSynthesisUtterance(text);
   u.rate=0.82; u.pitch=1.15; u.volume=1.0;
-  const voices=synth.getVoices();
-  const names=['Samantha','Karen','Victoria','Moira','Microsoft Zira','Microsoft Aria','Google US English','Google UK English Female'];
-  const pick=names.reduce((f,n)=>f||voices.find(v=>v.name.includes(n)),null);
-  if(pick) u.voice=pick;
+  var voices = synth.getVoices();
+  var names=['Samantha','Karen','Victoria','Moira','Microsoft Zira','Microsoft Aria','Google US English','Google UK English Female'];
+  var pick = null;
+  for (var n=0;n<names.length;n++){
+    for (var v=0;v<voices.length;v++){
+      if (voices[v].name.indexOf(names[n])>=0){ pick=voices[v]; break; }
+    }
+    if (pick) break;
+  }
+  if (pick) u.voice = pick;
   synth.speak(u);
 }
 
-// ═══════════════════════════════════════
+// ══════════════════════════════════════
 //  PHONICS
-// ═══════════════════════════════════════
-function firstSound(w){
-  const d2=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
-  for(const d of d2) if(w.startsWith(d)) return d;
+// ══════════════════════════════════════
+function firstSound(w) {
+  var d2=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
+  for (var i=0;i<d2.length;i++) if (w.indexOf(d2[i])===0) return d2[i];
   return w[0]||'';
 }
-function firstSyllable(w){
-  if(!w||w.length<=3) return w;
-  const V='aeiou';
-  let vi=-1;
-  for(let i=0;i<w.length;i++){if(V.includes(w[i])){vi=i;break;}}
-  if(vi<0) return w.slice(0,Math.min(3,w.length));
-  if(vi===0) return w.slice(0,Math.min(3,w.length));
-  if(vi+1<w.length&&!V.includes(w[vi+1])) return w.slice(0,vi+2);
+
+function firstSyllable(w) {
+  if (!w || w.length<=3) return w;
+  var V='aeiou', vi=-1;
+  for (var i=0;i<w.length;i++){ if (V.indexOf(w[i])>=0){ vi=i; break; } }
+  if (vi<0) return w.slice(0,Math.min(3,w.length));
+  if (vi===0) return w.slice(0,Math.min(3,w.length));
+  if (vi+1<w.length && V.indexOf(w[vi+1])<0) return w.slice(0,vi+2);
   return w.slice(0,vi+1);
 }
 
-// ═══════════════════════════════════════
+// ══════════════════════════════════════
 //  STATS & CELEBRATE
-// ═══════════════════════════════════════
+// ══════════════════════════════════════
 function updateStats(){
   document.getElementById('sW').textContent=nW;
   document.getElementById('sH').textContent=nH;
   document.getElementById('sS').textContent=nS;
 }
+
 function celebrate(){
   document.getElementById('celebrate').classList.add('show');
   speak('Wow! You finished the whole book! That was amazing reading! You should be so proud of yourself!');
 }
+
 function resetSession(){
   document.getElementById('celebrate').classList.remove('show');
   idx=0;hintStep=0;nW=0;nH=0;nS=0;
-  updateStats();hideHint();
+  updateStats(); hideHint();
   if(words.length) renderText();
+}
+
+function resetAll(){
+  stopListen();
+  document.getElementById('readerSection').style.display='none';
+  document.getElementById('pickerSection').style.display='none';
+  zone.style.display='';
+  inp.value='';
+  words=[]; allPages=[]; idx=0; currentFile=null;
 }
 </script>
 </body>

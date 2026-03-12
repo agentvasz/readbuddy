@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- v9.6 - visibility + no skip + reliable hints -->
+<!-- v9.7 - phonemes + pinned hints + wakeLock -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -329,6 +329,15 @@ async function loadPDF(file){
   document.getElementById('ocrSection').style.display='block';
   allPages=[];
 
+  // Keep screen + JS alive during scanning using Wake Lock API where available
+  var wakeLock=null;
+  try{
+    if(navigator.wakeLock) wakeLock=await navigator.wakeLock.request('screen');
+  }catch(e){}
+  // Also run a rAF heartbeat so the JS event loop stays active if tab is backgrounded
+  var keepAlive=true;
+  (function rafLoop(){ if(keepAlive) requestAnimationFrame(rafLoop); })();
+
   var buf=await file.arrayBuffer();
   var pdf=await pdfjsLib.getDocument({
     data:buf,
@@ -419,6 +428,10 @@ async function loadPDF(file){
 
     allPages.push({num:p, text:finalText, words:finalWords});
   }
+
+  // Release wake lock and stop heartbeat
+  keepAlive=false;
+  try{ if(wakeLock) await wakeLock.release(); }catch(e){}
 
   document.getElementById('ocrBar').style.width='100%';
   document.getElementById('progLbl').textContent='✅ All pages read!';
@@ -679,7 +692,13 @@ function onResult(event){
   lastHeard=heardArr;
   updateDiag(heardArr,idx);
 
-  // Match ONLY the current expected word — no look-ahead jumping
+  // If we're locked onto a hint word, handle the attempt specially
+  if(hintPinned){
+    handleHintAttempt(heardArr);
+    return;
+  }
+
+  // Normal reading — match only the current expected word
   var target=clean(words[idx]||'');
   var matched=false;
   for(var h=0;h<heardArr.length;h++){
@@ -720,6 +739,7 @@ function soundex(s){
   while(r.length<4)r+='0';return r;
 }
 function advanceOne(){
+  hintPinned=false;
   nW++;nS++;idx++;hintStep=0;hideHint();updateStats();
   if(idx>=words.length){stopListen();celebrate();return;}
   renderText();updateDiag(lastHeard,idx);
@@ -740,25 +760,65 @@ function armHint(){
   },500);
 }
 function clearHintTimer(){if(hintTimer){clearInterval(hintTimer);hintTimer=null;}}
+var hintPinned=false; // true when we're locked onto a word waiting for correct attempt
+
 function giveHint(){
   if(!listening||idx>=words.length)return;
-  nH++;nS=0;updateStats();
+  nH++;updateStats();
   var raw=words[idx],word=clean(raw);
+  hintPinned=true; // lock onto this word — don't advance until child says it right
   if(hintStep===0){
-    var snd=firstSound(word);
-    showHint('🔊','Sound Hint',snd+'…','First sound: "'+snd+'"',
-      "Let's try that word together. It starts with the sound… "+snd+". Can you say the whole word?");
+    var ph=phonemeOf(word);
+    showHint('🔊','First Sound',ph+'…',
+      'It starts with "'+ph+'"',
+      "Hmm, let's try that word. It starts with the sound… "+ph+"… "+ph+". Can you say the whole word?");
   }else if(hintStep===1){
     var syl=firstSyllable(word);
-    showHint('💬','Try This Part',syl+'-','Say this part: "'+syl+'"',
-      "Good effort! Listen carefully… the first part is… "+syl+". Now you try the whole word.");
+    showHint('💬','First Part',syl+'-',
+      'Say this part: "'+syl+'"',
+      "Good try! Listen to the first part… "+syl+"… "+syl+". Now say the whole word.");
   }else{
-    showHint('🌟','The Word Is…',raw,'Now you say it!',
-      "That is a tricky one. The word is… "+raw+". Can you say it? "+raw+".");
-    hintStep=-1;
+    showHint('🌟','The Word Is',raw,
+      'Now you say it: "'+raw+'"',
+      "That is a tricky one. The word is… "+raw+". Can you say it with me? "+raw+".");
+    // Don't increment past step 2 — keep repeating the full word until child says it
+    return;
   }
   hintStep++;
-  // lastSpeakTime is reset in speak() once TTS finishes — giving child a fresh 5s window
+}
+
+// Called from onResult when child attempts a word while hintPinned
+function handleHintAttempt(heardArr){
+  var raw=words[idx], word=clean(raw);
+  var correct=false;
+  for(var h=0;h<heardArr.length;h++){
+    if(matches(heardArr[h],word)){ correct=true; break; }
+  }
+  if(correct){
+    // Child got it! Praise and advance
+    hintPinned=false;
+    hintStep=0;
+    speak("Well done! Keep going.");
+    // Advance after praise finishes — onend will have set lastSpeakTime
+    // We schedule advance via a short timeout so TTS plays first
+    var advIdx=idx;
+    setTimeout(function(){
+      if(idx===advIdx) advanceOne(); // only if still on same word
+    }, 2000);
+  } else {
+    // Wrong attempt — acknowledge and re-give the current hint level
+    var encouragements=["Good try! ","Almost! ","Keep going! ","Nice effort! "];
+    var enc=encouragements[Math.floor(Math.random()*encouragements.length)];
+    var ph=phonemeOf(word), syl=firstSyllable(word);
+    if(hintStep<=1){
+      speak(enc+"Remember, it starts with… "+ph+"… "+ph+". Try again!");
+    } else if(hintStep===2){
+      speak(enc+"The first part is… "+syl+". The whole word is… "+raw+". You try!");
+    } else {
+      speak(enc+"The word is… "+raw+". "+raw+". Say it with me!");
+    }
+    // lastSpeakTime resets via onend so child gets another 5s window
+  }
 }
 function showHint(icon,tag,wordDisplay,sub,toSpeak){
   document.getElementById('hintIcon').textContent=icon;
@@ -771,10 +831,10 @@ function showHint(icon,tag,wordDisplay,sub,toSpeak){
 }
 function hideHint(){document.getElementById('hintBox').classList.remove('show');}
 function sayAgain(){
-  var step=((hintStep-1)+3)%3,word=clean(words[idx]||'');
-  if(step===0)speak('It starts with the sound… '+firstSound(word)+'… '+firstSound(word)+'. You try!');
-  else if(step===1)speak('The first part is… '+firstSyllable(word)+'… '+firstSyllable(word)+'. Now you say the whole word.');
-  else speak('The word is… '+(words[idx]||'')+'. '+(words[idx]||'')+'. Your turn!');
+  var word=clean(words[idx]||''), raw=words[idx]||'';
+  if(hintStep<=1) speak('It starts with the sound… '+phonemeOf(word)+'… '+phonemeOf(word)+'. You say the whole word!');
+  else if(hintStep===2) speak('The first part is… '+firstSyllable(word)+'… now you say the whole word.');
+  else speak('The word is… '+raw+'. '+raw+'. Your turn!');
 }
 function speak(text){
   var synth=window.speechSynthesis;
@@ -813,10 +873,33 @@ function speak(text){
   setTimeout(resetAfterSpeak, 8000);
   synth.speak(u);
 }
+// Map letters/digraphs to how they SOUND (phonemes), not letter names
+var PHONEME={
+  'ch':'chuh', 'sh':'shuh', 'th':'thuh', 'wh':'wuh', 'ph':'fff',
+  'qu':'kwuh', 'tr':'truh', 'gr':'gruh', 'br':'bruh', 'fr':'fruh',
+  'cr':'cruh', 'dr':'druh', 'pr':'pruh', 'bl':'bluh', 'cl':'cluh',
+  'fl':'fluh', 'gl':'gluh', 'pl':'pluh', 'sl':'sluh', 'sp':'spuh',
+  'st':'stuh', 'sw':'swuh', 'sn':'snuh', 'sm':'smuh', 'sk':'skuh',
+  'wr':'ruh',  'kn':'nuh',
+  'a':'aah', 'b':'buh', 'c':'cuh', 'd':'duh', 'e':'eh',
+  'f':'fff',  'g':'guh', 'h':'huh', 'i':'ih',  'j':'juh',
+  'k':'kuh',  'l':'lll', 'm':'mmm', 'n':'nnn', 'o':'oh',
+  'p':'puh',  'q':'kwuh','r':'rrr', 's':'sss', 't':'tuh',
+  'u':'uh',   'v':'vvv', 'w':'wuh', 'x':'ksss','y':'yuh', 'z':'zzz'
+};
 function firstSound(w){
-  var d=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
-  for(var i=0;i<d.length;i++)if(w.indexOf(d[i])===0)return d[i];
+  var digraphs=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
+  for(var i=0;i<digraphs.length;i++)
+    if(w.indexOf(digraphs[i])===0) return digraphs[i];
   return w[0]||'';
+}
+// Returns the spoken phoneme for TTS — sounds like the letter, not its name
+function phonemeOf(w){
+  var digraphs=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
+  for(var i=0;i<digraphs.length;i++)
+    if(w.indexOf(digraphs[i])===0) return PHONEME[digraphs[i]]||digraphs[i];
+  var first=(w[0]||'').toLowerCase();
+  return PHONEME[first]||first;
 }
 function firstSyllable(w){
   if(!w||w.length<=3)return w;

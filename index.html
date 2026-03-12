@@ -6,772 +6,677 @@
 <title>ReadBuddy 📚</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
-
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
   :root {
-    --sky: #e0f4ff;
-    --sun: #FFD166;
-    --grass: #06D6A0;
-    --berry: #EF476F;
-    --blue: #4361EE;
-    --lavender: #9B5DE5;
-    --text: #1a1a2e;
-    --muted: #6b7280;
+    --sun:#FFD166; --grass:#06D6A0; --berry:#EF476F;
+    --blue:#4361EE; --text:#1a1a2e; --muted:#6b7280;
   }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    font-family: 'Nunito', sans-serif;
-    background: linear-gradient(180deg, #c9e8ff 0%, #e8f5ff 50%, #d4f0e8 100%);
-    min-height: 100vh;
-    color: var(--text);
-  }
-
-  header { text-align: center; padding: 24px 20px 10px; }
-  .logo {
-    font-family: 'Fredoka One', cursive;
-    font-size: clamp(2rem, 6vw, 2.8rem);
-    color: var(--blue);
-    text-shadow: 3px 3px 0 rgba(67,97,238,0.15);
-    display: inline-flex; align-items: center; gap: 10px;
-  }
-  .logo span { display: inline-block; animation: bounce 2.5s ease-in-out infinite; }
-  @keyframes bounce { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg) scale(1.1)} }
-  .tagline { font-size: 0.9rem; color: var(--muted); margin-top: 3px; font-weight: 600; }
-
-  .app { max-width: 720px; margin: 0 auto; padding: 0 16px 60px; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:linear-gradient(160deg,#c9e8ff,#e8f5ff 50%,#d4f0e8);min-height:100vh;color:var(--text);}
+  header{text-align:center;padding:22px 16px 8px;}
+  .logo{font-family:'Fredoka One',cursive;font-size:clamp(1.8rem,5vw,2.6rem);color:var(--blue);display:inline-flex;align-items:center;gap:10px;}
+  .logo span{display:inline-block;animation:bb 2.5s ease-in-out infinite;}
+  @keyframes bb{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(5deg) scale(1.1)}}
+  .tag{font-size:.88rem;color:var(--muted);font-weight:700;margin-top:3px;}
+  .app{max-width:700px;margin:0 auto;padding:0 14px 60px;}
 
   /* WARN */
-  .warn {
-    background: #fff3cd; border: 2px solid #ffc107; border-radius: 14px;
-    padding: 10px 14px; margin-bottom: 12px; font-size: 0.85rem;
-    font-weight: 700; color: #856404; display: none;
-  }
-  .warn.show { display: block; }
+  .warn{background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:.84rem;font-weight:700;color:#856404;display:none;}
+  .warn.show{display:block;}
 
   /* UPLOAD */
-  .upload-zone {
-    background: white; border-radius: 24px; padding: 36px 24px;
-    text-align: center; border: 3px dashed #b5d5f5; cursor: pointer;
-    transition: all 0.2s; box-shadow: 0 6px 28px rgba(67,97,238,0.08);
-    position: relative;
-  }
-  .upload-zone:hover, .upload-zone.over {
-    border-color: var(--blue); background: #f0f5ff; transform: translateY(-2px);
-  }
-  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-icon { font-size: 3rem; display: block; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
-  .upload-zone h2 { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: var(--blue); margin-bottom: 6px; }
-  .upload-zone p { color: var(--muted); font-size: 0.88rem; font-weight: 600; }
-  .upload-cta {
-    display: inline-block; margin-top: 14px; background: var(--blue); color: white;
-    font-family: 'Fredoka One', cursive; font-size: 1rem; padding: 10px 26px;
-    border-radius: 50px; pointer-events: none; box-shadow: 0 4px 0 #2d46c7;
-  }
+  .upload{background:#fff;border-radius:22px;padding:32px 22px;text-align:center;border:3px dashed #b5d5f5;cursor:pointer;transition:all .2s;box-shadow:0 6px 26px rgba(67,97,238,.08);position:relative;}
+  .upload:hover,.upload.over{border-color:var(--blue);background:#f0f5ff;transform:translateY(-2px);}
+  .upload input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .upload .ico{font-size:2.8rem;display:block;margin-bottom:8px;animation:fl 3s ease-in-out infinite;}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .upload h2{font-family:'Fredoka One',cursive;font-size:1.35rem;color:var(--blue);margin-bottom:5px;}
+  .upload p{color:var(--muted);font-size:.86rem;font-weight:600;}
+  .ucta{display:inline-block;margin-top:12px;background:var(--blue);color:#fff;font-family:'Fredoka One',cursive;font-size:.96rem;padding:9px 24px;border-radius:50px;pointer-events:none;box-shadow:0 4px 0 #2d46c7;}
 
   /* LOADING */
-  .loading { text-align: center; padding: 16px; font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--blue); display: none; }
-  .loading.show { display: block; }
-  .spin { display: inline-block; width: 20px; height: 20px; border: 3px solid #c0d0ff; border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
-  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading{text-align:center;padding:14px;font-family:'Fredoka One',cursive;font-size:1.05rem;color:var(--blue);display:none;}
+  .loading.show{display:block;}
+  .spin{display:inline-block;width:18px;height:18px;border:3px solid #c0d0ff;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px;}
+  @keyframes sp{to{transform:rotate(360deg)}}
 
   /* BOOK BAR */
-  .book-bar {
-    background: white; border-radius: 18px; padding: 12px 18px;
-    margin-top: 12px; display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
-  }
-  .book-bar.hidden { display: none; }
-  .book-icon {
-    width: 38px; height: 50px;
-    background: linear-gradient(135deg, var(--lavender), var(--blue));
-    border-radius: 5px; display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; flex-shrink: 0; box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
-  }
-  .book-name { flex: 1; font-weight: 800; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
-  .book-count { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-top: 1px; }
-  .change-btn {
-    background: #f1f5ff; color: var(--blue); border: none; border-radius: 10px;
-    padding: 6px 12px; font-family: 'Nunito', sans-serif; font-weight: 700;
-    font-size: 0.8rem; cursor: pointer;
-  }
-  .change-btn:hover { background: #dde6ff; }
+  .bookbar{background:#fff;border-radius:16px;padding:11px 16px;margin-top:10px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.07);}
+  .bookbar.hidden{display:none;}
+  .bico{width:36px;height:46px;background:linear-gradient(135deg,#9B5DE5,var(--blue));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;box-shadow:2px 2px 0 rgba(0,0,0,.15);}
+  .bname{flex:1;font-weight:800;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;}
+  .bcount{font-size:.76rem;color:var(--muted);font-weight:600;margin-top:1px;}
+  .chbtn{background:#f1f5ff;color:var(--blue);border:none;border-radius:9px;padding:6px 11px;font-family:'Nunito',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;}
+  .chbtn:hover{background:#dde6ff;}
 
   /* READER */
-  .reader { margin-top: 14px; display: none; }
-  .reader.show { display: block; }
+  .reader{margin-top:12px;display:none;}
+  .reader.show{display:block;}
 
   /* PROGRESS */
-  .prog-row {
-    background: white; border-radius: 14px; padding: 10px 16px; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 10px; box-shadow: 0 3px 14px rgba(0,0,0,0.06);
-  }
-  .prog-label { font-weight: 800; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
-  .prog-bg { flex: 1; height: 12px; background: #e8f0fe; border-radius: 99px; overflow: hidden; }
-  .prog-fill { height: 100%; background: linear-gradient(90deg, var(--grass), var(--blue)); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
-  .prog-pct { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--blue); min-width: 38px; text-align: right; }
+  .prog{background:#fff;border-radius:13px;padding:9px 14px;margin-bottom:10px;display:flex;align-items:center;gap:9px;box-shadow:0 3px 12px rgba(0,0,0,.06);}
+  .plbl{font-weight:800;font-size:.78rem;color:var(--muted);white-space:nowrap;}
+  .pbg{flex:1;height:11px;background:#e8f0fe;border-radius:99px;overflow:hidden;}
+  .pfill{height:100%;background:linear-gradient(90deg,var(--grass),var(--blue));border-radius:99px;transition:width .4s ease;width:0%;}
+  .ppct{font-family:'Fredoka One',cursive;font-size:.9rem;color:var(--blue);min-width:36px;text-align:right;}
 
-  /* DEBUG — prominent so parent can see what's happening */
-  .debug-wrap { margin-bottom: 10px; }
-  .debug-toggle {
-    background: #1a1a2e; color: #06D6A0; border: none; border-radius: 10px;
-    padding: 5px 12px; font-family: 'Nunito', sans-serif; font-weight: 700;
-    font-size: 0.78rem; cursor: pointer; width: 100%; text-align: left;
-    letter-spacing: 0.3px;
-  }
-  .debug-log {
-    background: #1a1a2e; border-radius: 0 0 10px 10px;
-    padding: 8px 12px; font-family: monospace; font-size: 0.76rem;
-    max-height: 100px; overflow-y: auto; display: none;
-  }
-  .debug-log.show { display: block; }
-  .debug-log p { margin: 1px 0; }
-  .dh { color: #FFD166; }   /* heard */
-  .dm { color: #06D6A0; }   /* matched */
-  .de { color: #EF476F; }   /* error/miss */
-  .di { color: #aaa; }      /* info */
+  /* ── DIAGNOSTIC PANEL ── shown always so user can see what's happening */
+  .diag{background:#111827;border-radius:14px;padding:10px 13px;margin-bottom:10px;font-family:monospace;font-size:.75rem;min-height:64px;}
+  .diag-title{color:#9ca3af;font-family:'Nunito',sans-serif;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;}
+  .diag-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;}
+  .diag-col{flex:1;min-width:120px;}
+  .diag-col h4{font-size:.68rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;font-family:'Nunito',sans-serif;font-weight:800;}
+  .heard-lbl{color:#FFD166;}
+  .expect-lbl{color:#818cf8;}
+  .match-lbl{color:#06D6A0;}
+  .diag-words{color:#e5e7eb;line-height:1.7;}
+  .diag-words .hw{color:#FFD166;font-weight:bold;}  /* heard word */
+  .diag-words .ew{color:#a5b4fc;}                   /* expected word */
+  .diag-words .mw{color:#06D6A0;font-weight:bold;}  /* matched word */
+  .diag-words .xw{color:#f87171;}                   /* no-match */
+  .diag-status{color:#9ca3af;font-style:italic;font-size:.72rem;margin-top:4px;}
 
-  /* TEXT DISPLAY */
-  .book-text {
-    background: white; border-radius: 22px; padding: 22px;
-    min-height: 120px; box-shadow: 0 5px 24px rgba(0,0,0,0.07);
-    margin-bottom: 12px; line-height: 2.1;
-    font-size: clamp(1rem, 2.6vw, 1.25rem); font-weight: 600; color: #374151;
-  }
-  .w { display: inline-block; margin: 2px 2px; padding: 2px 4px; border-radius: 5px; }
-  .w.done { color: #cbd5e1; }
-  .w.now {
-    background: var(--sun); color: var(--text); transform: scale(1.1);
-    border-radius: 7px; box-shadow: 0 2px 14px rgba(255,209,102,0.55);
-    animation: glow 1.2s ease-in-out infinite;
-  }
-  @keyframes glow { 0%,100%{box-shadow:0 2px 14px rgba(255,209,102,0.55)} 50%{box-shadow:0 2px 24px rgba(255,209,102,0.85)} }
+  /* BOOK TEXT */
+  .booktext{background:#fff;border-radius:20px;padding:20px;min-height:110px;box-shadow:0 5px 22px rgba(0,0,0,.07);margin-bottom:10px;line-height:2.1;font-size:clamp(.98rem,2.5vw,1.22rem);font-weight:600;color:#374151;}
+  .w{display:inline-block;margin:2px 2px;padding:1px 4px;border-radius:5px;}
+  .w.done{color:#d1d5db;}
+  .w.now{background:var(--sun);color:var(--text);transform:scale(1.08);border-radius:7px;box-shadow:0 2px 12px rgba(255,209,102,.5);animation:gw 1.2s ease-in-out infinite;}
+  @keyframes gw{0%,100%{box-shadow:0 2px 12px rgba(255,209,102,.5)}50%{box-shadow:0 2px 22px rgba(255,209,102,.85)}}
 
   /* HINT BOX */
-  .hint-box {
-    background: linear-gradient(135deg,#fff8e7,#fffbf0);
-    border: 3px solid var(--sun); border-radius: 22px; padding: 16px 20px;
-    text-align: center; margin-bottom: 12px;
-    box-shadow: 0 5px 20px rgba(255,209,102,0.2); display: none;
-  }
-  .hint-box.show { display: block; animation: pop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
-  @keyframes pop { from{transform:scale(0.82) translateY(8px);opacity:0} to{transform:scale(1);opacity:1} }
-
-  .hint-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
-  .hint-tag { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #c8820a; margin-bottom: 2px; }
-  .hint-word { font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: var(--text); letter-spacing: 3px; }
-  .hint-sub { font-size: 0.82rem; color: #a07020; font-weight: 600; margin-top: 4px; }
-  .say-again {
-    margin-top: 10px; background: var(--sun); border: none; border-radius: 50px;
-    padding: 7px 20px; font-family: 'Fredoka One', cursive; font-size: 0.92rem;
-    cursor: pointer; color: var(--text); box-shadow: 0 3px 0 #c8820a; transition: all 0.18s;
-  }
-  .say-again:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #c8820a; }
+  .hintbox{background:linear-gradient(135deg,#fff8e7,#fffbf0);border:3px solid var(--sun);border-radius:20px;padding:14px 18px;text-align:center;margin-bottom:10px;box-shadow:0 5px 18px rgba(255,209,102,.2);display:none;}
+  .hintbox.show{display:block;animation:pop .35s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes pop{from{transform:scale(.82) translateY(8px);opacity:0}to{transform:scale(1);opacity:1}}
+  .hico{font-size:1.8rem;display:block;margin-bottom:3px;}
+  .htag{font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#c8820a;margin-bottom:2px;}
+  .hword{font-family:'Fredoka One',cursive;font-size:2rem;color:var(--text);letter-spacing:3px;}
+  .hsub{font-size:.8rem;color:#a07020;font-weight:600;margin-top:3px;}
+  .sagain{margin-top:9px;background:var(--sun);border:none;border-radius:50px;padding:6px 18px;font-family:'Fredoka One',cursive;font-size:.9rem;cursor:pointer;color:var(--text);box-shadow:0 3px 0 #c8820a;transition:all .18s;}
+  .sagain:hover{transform:translateY(-2px);box-shadow:0 5px 0 #c8820a;}
 
   /* BIG BUTTON */
-  .btn-area { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 18px 0; }
-  .big-btn {
-    width: 124px; height: 124px; border-radius: 50%; border: none; cursor: pointer;
-    font-size: 2.6rem; display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; position: relative;
-    background: var(--grass); box-shadow: 0 8px 0 #04a67d, 0 12px 28px rgba(6,214,160,0.3);
-  }
-  .big-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 0 #04a67d, 0 18px 36px rgba(6,214,160,0.38); }
-  .big-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #04a67d; }
-  .big-btn.on {
-    background: var(--berry); box-shadow: 0 8px 0 #c03058, 0 12px 28px rgba(239,71,111,0.3);
-    animation: pulse 1.6s ease-in-out infinite;
-  }
-  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-  .big-btn.on::before, .big-btn.on::after {
-    content:''; position:absolute; border-radius:50%;
-    border: 3px solid var(--berry); animation: ring 1.8s ease-out infinite;
-  }
-  .big-btn.on::after { animation-delay: 0.9s; }
-  @keyframes ring { 0%{inset:0;opacity:.7} 100%{inset:-36px;opacity:0} }
-  .btn-lbl { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--text); }
+  .btnarea{display:flex;flex-direction:column;align-items:center;gap:11px;margin:16px 0;}
+  .bigbtn{width:118px;height:118px;border-radius:50%;border:none;cursor:pointer;font-size:2.5rem;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative;background:var(--grass);box-shadow:0 7px 0 #04a67d,0 11px 26px rgba(6,214,160,.3);}
+  .bigbtn:hover{transform:translateY(-4px);box-shadow:0 11px 0 #04a67d,0 17px 34px rgba(6,214,160,.38);}
+  .bigbtn:active{transform:translateY(3px);box-shadow:0 3px 0 #04a67d;}
+  .bigbtn.on{background:var(--berry);box-shadow:0 7px 0 #c03058,0 11px 26px rgba(239,71,111,.3);animation:lp 1.6s ease-in-out infinite;}
+  @keyframes lp{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .bigbtn.on::before,.bigbtn.on::after{content:'';position:absolute;border-radius:50%;border:3px solid var(--berry);animation:rg 1.8s ease-out infinite;}
+  .bigbtn.on::after{animation-delay:.9s;}
+  @keyframes rg{0%{inset:0;opacity:.7}100%{inset:-34px;opacity:0}}
+  .blbl{font-family:'Fredoka One',cursive;font-size:1.05rem;color:var(--text);}
 
   /* STATS */
-  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
-  .stat { background: white; border-radius: 16px; padding: 12px 6px; text-align: center; box-shadow: 0 3px 12px rgba(0,0,0,0.06); }
-  .s-icon { font-size: 1.3rem; display: block; }
-  .s-val { font-family: 'Fredoka One', cursive; font-size: 1.35rem; color: var(--blue); line-height: 1.2; display: block; }
-  .s-lbl { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .stat{background:#fff;border-radius:14px;padding:11px 6px;text-align:center;box-shadow:0 3px 11px rgba(0,0,0,.06);}
+  .sico{font-size:1.2rem;display:block;}
+  .sval{font-family:'Fredoka One',cursive;font-size:1.3rem;color:var(--blue);line-height:1.2;display:block;}
+  .slbl{font-size:.66rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
 
   /* CELEBRATE */
-  .celebrate {
-    position: fixed; inset: 0; background: rgba(255,255,255,0.94);
-    display: none; align-items: center; justify-content: center;
-    flex-direction: column; z-index: 100; backdrop-filter: blur(8px);
-  }
-  .celebrate.show { display: flex; animation: fadeIn 0.4s ease; }
-  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-  .celebrate h2 { font-family: 'Fredoka One', cursive; font-size: 2.6rem; color: var(--blue); text-align: center; margin: 12px 0 8px; }
-  .celebrate .big-emoji { font-size: 4rem; animation: spin 1.4s linear infinite; display: block; }
-  .celebrate button {
-    margin-top: 20px; background: var(--grass); color: white; border: none;
-    border-radius: 50px; padding: 12px 36px; font-family: 'Fredoka One', cursive;
-    font-size: 1.2rem; cursor: pointer; box-shadow: 0 6px 0 #04a67d;
-  }
+  .celebrate{position:fixed;inset:0;background:rgba(255,255,255,.94);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:100;backdrop-filter:blur(8px);}
+  .celebrate.show{display:flex;animation:fi .4s ease;}
+  @keyframes fi{from{opacity:0}to{opacity:1}}
+  .celebrate h2{font-family:'Fredoka One',cursive;font-size:2.5rem;color:var(--blue);text-align:center;margin:12px 0 8px;}
+  .cico{font-size:3.5rem;animation:sp 1.4s linear infinite;display:block;}
+  .celebrate button{margin-top:18px;background:var(--grass);color:#fff;border:none;border-radius:50px;padding:11px 34px;font-family:'Fredoka One',cursive;font-size:1.15rem;cursor:pointer;box-shadow:0 6px 0 #04a67d;}
 </style>
 </head>
 <body>
-
 <header>
   <div class="logo"><span>📖</span> ReadBuddy</div>
-  <p class="tagline">Your reading helper! 🌟</p>
+  <p class="tag">Your reading helper! 🌟</p>
 </header>
 
 <div class="app">
-
-  <div class="warn" id="warn">
-    ⚠️ Voice listening needs <strong>Chrome or Edge</strong> browser — please switch!
-  </div>
+  <div class="warn" id="warn">⚠️ Please use <strong>Chrome or Edge</strong> — voice won't work in other browsers!</div>
 
   <!-- Upload -->
-  <div class="upload-zone" id="uploadZone">
-    <input type="file" id="pdfInput" accept=".pdf" />
-    <span class="upload-icon">📚</span>
+  <div class="upload" id="uploadZone">
+    <input type="file" id="pdfInput" accept=".pdf"/>
+    <span class="ico">📚</span>
     <h2>Upload Your Book!</h2>
     <p>Tap to pick a PDF book file</p>
-    <span class="upload-cta">Choose a Book</span>
+    <span class="ucta">Choose a Book</span>
   </div>
 
   <div class="loading" id="loading"><span class="spin"></span> Reading your book…</div>
 
   <!-- Book bar -->
-  <div class="book-bar hidden" id="bookBar">
-    <div class="book-icon">📖</div>
+  <div class="bookbar hidden" id="bookBar">
+    <div class="bico">📖</div>
     <div style="flex:1;min-width:0">
-      <div class="book-name" id="bookName">—</div>
-      <div class="book-count" id="bookCount">—</div>
+      <div class="bname" id="bookName">—</div>
+      <div class="bcount" id="bookCount">—</div>
     </div>
-    <button class="change-btn" id="changeBtn">Change Book</button>
+    <button class="chbtn" id="changeBtn">Change Book</button>
   </div>
 
   <!-- Reader -->
   <div class="reader" id="reader">
 
     <!-- Progress -->
-    <div class="prog-row">
-      <span class="prog-label">📖 Progress</span>
-      <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
-      <span class="prog-pct" id="progPct">0%</span>
+    <div class="prog">
+      <span class="plbl">📖 Progress</span>
+      <div class="pbg"><div class="pfill" id="progFill"></div></div>
+      <span class="ppct" id="progPct">0%</span>
     </div>
 
-    <!-- Debug panel -->
-    <div class="debug-wrap">
-      <button class="debug-toggle" id="dbgToggle" onclick="toggleDebug()">
-        🔍 Show what the mic hears (tap to expand)
-      </button>
-      <div class="debug-log" id="dbgLog"></div>
+    <!-- Diagnostic panel — ALWAYS visible -->
+    <div class="diag" id="diag">
+      <div class="diag-title">🎙️ Live Mic Diagnostic</div>
+      <div class="diag-row">
+        <div class="diag-col">
+          <h4 class="heard-lbl">What mic heard</h4>
+          <div class="diag-words" id="diagHeard">—</div>
+        </div>
+        <div class="diag-col">
+          <h4 class="expect-lbl">Expected next word</h4>
+          <div class="diag-words" id="diagExpect">—</div>
+        </div>
+        <div class="diag-col">
+          <h4 class="match-lbl">Result</h4>
+          <div class="diag-words" id="diagResult">—</div>
+        </div>
+      </div>
+      <div class="diag-status" id="diagStatus">Start reading to see results here…</div>
     </div>
 
     <!-- Book text -->
-    <div class="book-text" id="bookText">
-      <em style="color:#9ca3af;font-style:normal">Press the green button below and start reading out loud! 🎉</em>
+    <div class="booktext" id="bookText">
+      <em style="color:#9ca3af;font-style:normal">Press the green button and start reading out loud! 🎉</em>
     </div>
 
     <!-- Hint box -->
-    <div class="hint-box" id="hintBox">
-      <span class="hint-icon" id="hintIcon">🔊</span>
-      <div class="hint-tag" id="hintTag">Hint</div>
-      <div class="hint-word" id="hintWord">—</div>
-      <div class="hint-sub" id="hintSub"></div>
-      <button class="say-again" onclick="sayAgain()">🔊 Say it again!</button>
+    <div class="hintbox" id="hintBox">
+      <span class="hico" id="hintIcon">🔊</span>
+      <div class="htag" id="hintTag">Hint</div>
+      <div class="hword" id="hintWord">—</div>
+      <div class="hsub" id="hintSub"></div>
+      <button class="sagain" onclick="sayAgain()">🔊 Say it again!</button>
     </div>
 
     <!-- Big button -->
-    <div class="btn-area">
-      <button class="big-btn" id="bigBtn" onclick="toggleListen()">🎤</button>
-      <span class="btn-lbl" id="btnLbl">Start Reading!</span>
+    <div class="btnarea">
+      <button class="bigbtn" id="bigBtn" onclick="toggleListen()">🎤</button>
+      <span class="blbl" id="btnLbl">Start Reading!</span>
     </div>
 
     <!-- Stats -->
     <div class="stats">
-      <div class="stat"><span class="s-icon">✅</span><span class="s-val" id="sWords">0</span><span class="s-lbl">Words Read</span></div>
-      <div class="stat"><span class="s-icon">💡</span><span class="s-val" id="sHints">0</span><span class="s-lbl">Hints Given</span></div>
-      <div class="stat"><span class="s-icon">⭐</span><span class="s-val" id="sStreak">0</span><span class="s-lbl">Streak</span></div>
+      <div class="stat"><span class="sico">✅</span><span class="sval" id="sW">0</span><span class="slbl">Words Read</span></div>
+      <div class="stat"><span class="sico">💡</span><span class="sval" id="sH">0</span><span class="slbl">Hints Given</span></div>
+      <div class="stat"><span class="sico">⭐</span><span class="sval" id="sS">0</span><span class="slbl">Streak</span></div>
     </div>
-
   </div>
 </div>
 
-<!-- Celebration -->
 <div class="celebrate" id="celebrate">
-  <span class="big-emoji">🎉</span>
+  <span class="cico">🎉</span>
   <h2>You did it!<br>Amazing reading! 🌟</h2>
   <button onclick="resetSession()">Read Another Book!</button>
 </div>
 
 <script>
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 //  STATE
-// ══════════════════════════════════════
-let words       = [];
-let idx         = 0;       // current word position
-let listening   = false;
-let recog       = null;
-let hintTimer   = null;
-let hintStep    = 0;       // 0=first sound, 1=syllable, 2=full word, cycles
-let nWords      = 0;
-let nHints      = 0;
-let nStreak     = 0;
-let dbgOpen     = false;
-let voicesReady = false;
+// ════════════════════════════════════════
+let words      = [];
+let idx        = 0;
+let listening  = false;
+let recog      = null;
+let hintTimer  = null;
+let hintStep   = 0;
+let nW=0, nH=0, nS=0;
+let lastSpoken = [];   // last set of words the mic heard
+let lastSpeakTime = 0; // timestamp of last speech activity
 
-const HINT_PAUSE = 5000;   // 5s silence → first hint
-const HINT_NEXT  = 6000;   // 6s → next hint level
+const HINT_DELAY = 4000;  // 4 seconds of silence → first hint
+const HINT_NEXT  = 5000;  // 5 seconds → next hint level
 
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 //  PDF.JS
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 //  STARTUP
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 window.addEventListener('load', () => {
-  // Load voices — Chrome needs a moment
-  const loadVoices = () => {
-    const v = speechSynthesis.getVoices();
-    if (v.length) { voicesReady = true; }
-  };
-  speechSynthesis.onvoiceschanged = loadVoices;
-  loadVoices();
-  setTimeout(loadVoices, 500);
-  setTimeout(loadVoices, 1500);
+  // Pre-load TTS voices (Chrome needs a trigger)
+  const loadV = () => speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = loadV;
+  loadV(); setTimeout(loadV, 500); setTimeout(loadV, 1500);
 
   // Browser check
   const ua = navigator.userAgent;
-  const good = (/Chrome/.test(ua) && /Google Inc/.test(navigator.vendor)) || /Edg/.test(ua);
-  if (!good) document.getElementById('warn').classList.add('show');
+  if (!(/Chrome/.test(ua) && /Google Inc/.test(navigator.vendor)) && !/Edg/.test(ua)) {
+    document.getElementById('warn').classList.add('show');
+  }
 });
 
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 //  PDF UPLOAD
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 const zone = document.getElementById('uploadZone');
 const inp  = document.getElementById('pdfInput');
 
-zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
-zone.addEventListener('dragleave', () => zone.classList.remove('over'));
-zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); if (e.dataTransfer.files[0]) go(e.dataTransfer.files[0]); });
-inp.addEventListener('change', e => { if (e.target.files[0]) go(e.target.files[0]); });
+zone.addEventListener('dragover', e=>{e.preventDefault();zone.classList.add('over');});
+zone.addEventListener('dragleave', ()=>zone.classList.remove('over'));
+zone.addEventListener('drop', e=>{e.preventDefault();zone.classList.remove('over');if(e.dataTransfer.files[0]) loadPDF(e.dataTransfer.files[0]);});
+inp.addEventListener('change', e=>{if(e.target.files[0]) loadPDF(e.target.files[0]);});
 
-async function go(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please pick a PDF file!'); return; }
-
+async function loadPDF(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please choose a PDF file!'); return; }
   document.getElementById('loading').classList.add('show');
-  zone.style.display = 'none';
-
+  zone.style.display='none';
   try {
     const buf = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-    let text = '';
-    for (let p = 1; p <= pdf.numPages; p++) {
+    const pdf = await pdfjsLib.getDocument({data:buf}).promise;
+    let text='';
+    for(let p=1;p<=pdf.numPages;p++){
       const pg = await pdf.getPage(p);
       const ct = await pg.getTextContent();
-      text += ct.items.map(i => i.str).join(' ') + ' ';
+      text += ct.items.map(i=>i.str).join(' ')+' ';
     }
-    words = text.replace(/\s+/g, ' ').trim().split(' ').filter(w => w.length > 0);
+    words = text.replace(/\s+/g,' ').trim().split(' ').filter(w=>w.length>0);
   } catch(e) {
-    alert('Could not read PDF. Please try another file.');
-    zone.style.display = ''; document.getElementById('loading').classList.remove('show');
+    alert('Could not read that PDF. Please try another file.');
+    zone.style.display='';
+    document.getElementById('loading').classList.remove('show');
     return;
   }
-
   document.getElementById('loading').classList.remove('show');
   document.getElementById('bookBar').classList.remove('hidden');
   document.getElementById('bookName').textContent = file.name.replace(/\.pdf$/i,'');
   document.getElementById('bookCount').textContent = `${words.length.toLocaleString()} words`;
   document.getElementById('reader').classList.add('show');
-
-  idx = 0; hintStep = 0;
+  idx=0; hintStep=0;
   renderText();
+  updateDiag([], idx);
 }
 
-document.getElementById('changeBtn').addEventListener('click', () => {
+document.getElementById('changeBtn').addEventListener('click', ()=>{
   stopListen();
-  zone.style.display = '';
+  zone.style.display='';
   document.getElementById('bookBar').classList.add('hidden');
   document.getElementById('reader').classList.remove('show');
-  inp.value = '';
-  words = []; idx = 0;
+  inp.value=''; words=[]; idx=0;
 });
 
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 //  RENDER TEXT
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 function renderText() {
-  const el    = document.getElementById('bookText');
-  const start = Math.max(0, idx - 8);
-  const end   = Math.min(words.length, idx + 40);
-  let html = start > 0 ? '<span style="color:#cbd5e1;font-size:.8em">… </span>' : '';
-
-  for (let i = start; i < end; i++) {
-    const cls = i < idx ? 'done' : i === idx ? 'now' : '';
+  const el = document.getElementById('bookText');
+  const s  = Math.max(0, idx-8);
+  const e  = Math.min(words.length, idx+40);
+  let html = s>0 ? '<span style="color:#d1d5db;font-size:.8em">… </span>' : '';
+  for(let i=s;i<e;i++){
+    const cls = i<idx?'done':i===idx?'now':'';
     html += `<span class="w ${cls}">${esc(words[i])}</span> `;
   }
-  if (end < words.length) html += '<span style="color:#cbd5e1;font-size:.8em"> …</span>';
-  el.innerHTML = html;
-
-  const cur = el.querySelector('.w.now');
-  if (cur) cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  if(e<words.length) html+='<span style="color:#d1d5db;font-size:.8em"> …</span>';
+  el.innerHTML=html;
+  const cur=el.querySelector('.w.now');
+  if(cur) cur.scrollIntoView({block:'nearest',behavior:'smooth'});
   updateProg();
 }
 
-function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-function updateProg() {
-  const pct = words.length ? Math.round(idx / words.length * 100) : 0;
-  document.getElementById('progFill').style.width = pct + '%';
-  document.getElementById('progPct').textContent  = pct + '%';
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function updateProg(){
+  const pct=words.length?Math.round(idx/words.length*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
 }
 
-// ══════════════════════════════════════
-//  SPEECH RECOGNITION
-// ══════════════════════════════════════
-function toggleListen() { listening ? stopListen() : startListen(); }
+// ════════════════════════════════════════
+//  DIAGNOSTIC PANEL
+// ════════════════════════════════════════
+function updateDiag(heardArr, curIdx) {
+  const expected = curIdx < words.length ? clean(words[curIdx]) : '(end of book)';
+  document.getElementById('diagExpect').innerHTML =
+    `<span class="ew">${expected}</span>` +
+    (curIdx+1<words.length ? ` <span style="color:#6b7280;font-size:.85em">then: ${clean(words[curIdx+1])}</span>` : '');
 
-function startListen() {
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SR) { alert('Please use Chrome or Edge for voice support! 🎙️'); return; }
+  if(heardArr.length===0){
+    document.getElementById('diagHeard').innerHTML  = '<span style="color:#6b7280">—</span>';
+    document.getElementById('diagResult').innerHTML = '<span style="color:#6b7280">—</span>';
+    document.getElementById('diagStatus').textContent = 'Waiting for speech…';
+    return;
+  }
+
+  document.getElementById('diagHeard').innerHTML =
+    heardArr.map(w=>`<span class="hw">${w}</span>`).join(' ');
+
+  // Check each heard word and show match/no-match
+  let matched = false;
+  let resultHTML = '';
+  for(const h of heardArr){
+    const m = matches(h, expected);
+    resultHTML += m
+      ? `<span class="mw">✓ "${h}" = "${expected}"</span> `
+      : `<span class="xw">✗ "${h}"≠"${expected}"</span> `;
+    if(m) matched=true;
+  }
+  document.getElementById('diagResult').innerHTML = resultHTML;
+
+  // Show WHY it didn't match (helpful for debugging)
+  if(!matched && heardArr.length>0){
+    const first = heardArr[0];
+    const why = [];
+    if(expected.length<=1) why.push('word too short, needs exact match');
+    else {
+      const d = lev(first, expected);
+      why.push(`edit distance=${d} (allowed=${expected.length<=4?1:expected.length<=7?2:3})`);
+      why.push(`soundex: heard=${soundex(first)} expected=${soundex(expected)}`);
+      why.push(`prefix match: ${expected.startsWith(first.slice(0,3))?'yes':'no'}`);
+    }
+    document.getElementById('diagStatus').textContent = '⚠️ No match. '+why.join(' | ');
+  } else if(matched) {
+    document.getElementById('diagStatus').textContent = '✅ Word matched! Advancing…';
+  }
+}
+
+// ════════════════════════════════════════
+//  SPEECH RECOGNITION
+// ════════════════════════════════════════
+function toggleListen(){ listening ? stopListen() : startListen(); }
+
+function startListen(){
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ alert('Please open this page in Chrome or Edge! 🎙️'); return; }
 
   recog = new SR();
   recog.continuous     = true;
-  recog.interimResults = true;   // get words as they're spoken, not just at end of sentence
+  recog.interimResults = true;
   recog.lang           = 'en-US';
-  recog.maxAlternatives = 8;     // ask browser for 8 possible interpretations
+  recog.maxAlternatives = 10;  // get as many guesses as possible
 
   recog.onresult = onResult;
   recog.onerror  = onError;
-  recog.onend    = () => { if (listening) { try { recog.start(); } catch(e){} } };
+  recog.onend    = ()=>{ if(listening){ try{recog.start();}catch(e){} } };
 
-  try { recog.start(); } catch(e) { log('Could not start mic: ' + e.message, 'de'); return; }
+  try{ recog.start(); }catch(e){ alert('Microphone error: '+e.message); return; }
 
-  listening = true;
+  listening=true; lastSpeakTime=Date.now();
   document.getElementById('bigBtn').classList.add('on');
-  document.getElementById('bigBtn').textContent = '⏹️';
-  document.getElementById('btnLbl').textContent = "I'm Listening!";
+  document.getElementById('bigBtn').textContent='⏹️';
+  document.getElementById('btnLbl').textContent="I'm Listening!";
   armHint();
 }
 
-function stopListen() {
-  listening = false;
-  if (recog) { try { recog.stop(); } catch(e){} recog = null; }
+function stopListen(){
+  listening=false;
+  if(recog){try{recog.stop();}catch(e){} recog=null;}
   clearHintTimer();
   document.getElementById('bigBtn').classList.remove('on');
-  document.getElementById('bigBtn').textContent = '🎤';
-  document.getElementById('btnLbl').textContent = 'Start Reading!';
+  document.getElementById('bigBtn').textContent='🎤';
+  document.getElementById('btnLbl').textContent='Start Reading!';
 }
 
-function onError(e) {
-  // 'no-speech' is totally normal (child paused) — don't log it as an error
-  if (e.error === 'no-speech' || e.error === 'aborted') return;
-  log('Mic error: ' + e.error, 'de');
+function onError(e){
+  if(e.error==='no-speech'||e.error==='aborted') return;
+  document.getElementById('diagStatus').textContent='Mic error: '+e.error;
 }
 
-// ══════════════════════════════════════
-//  MATCHING ENGINE  (v3 — very forgiving)
-// ══════════════════════════════════════
+// ════════════════════════════════════════
+//  MATCHING — v4, most permissive yet
+// ════════════════════════════════════════
 function onResult(event) {
-  // Step 1: collect every word from every alternative, final AND interim
+  // Collect ALL words from ALL results + ALL alternatives
   const pool = new Set();
-  for (let r = 0; r < event.results.length; r++) {
-    for (let a = 0; a < event.results[r].length; a++) {
-      event.results[r][a].transcript
-        .toLowerCase()
-        .replace(/[^a-z0-9'\s\-]/g, ' ')
+  for(let r=0; r<event.results.length; r++){
+    for(let a=0; a<event.results[r].length; a++){
+      const transcript = event.results[r][a].transcript;
+      transcript.toLowerCase()
+        .replace(/[^a-z0-9'\s]/g,' ')
         .split(/\s+/)
         .filter(Boolean)
-        .forEach(w => pool.add(w));
+        .forEach(w=>pool.add(w));
     }
   }
-  if (!pool.size) return;
+  if(!pool.size) return;
 
-  log('Heard: ' + [...pool].join(' · '), 'dh');
+  const heardArr = [...pool];
+  lastSpoken = heardArr;
+  lastSpeakTime = Date.now();  // reset hint timer on any speech
 
-  // Step 2: check current word AND next 4 words (look-ahead)
-  // This handles the common case where recognition hears a word a beat early
-  const LOOK = 5;
+  // Update diagnostic
+  updateDiag(heardArr, idx);
+
+  // ── MATCH AGAINST CURRENT + NEXT FEW WORDS ──
+  const LOOK = 6;  // look up to 6 words ahead
   let advance = -1;
 
-  outer:
-  for (let off = 0; off < LOOK && idx + off < words.length; off++) {
-    const target = clean(words[idx + off]);
-    for (const spoken of pool) {
-      if (matches(spoken, target)) {
-        advance = off;
-        log(`✓ "${spoken}" → "${target}" (offset +${off})`, 'dm');
-        break outer;
+  for(let off=0; off<LOOK && idx+off<words.length; off++){
+    const target = clean(words[idx+off]);
+    for(const spoken of heardArr){
+      if(matches(spoken, target)){
+        advance=off;
+        break;
       }
     }
+    if(advance>=0) break;
   }
 
-  if (advance >= 0) {
-    // Advance past any skipped words + the matched word
-    for (let i = 0; i <= advance; i++) advanceOne();
+  if(advance>=0){
+    // Advance through skipped words + matched word
+    for(let i=0;i<=advance;i++) advanceOne();
+    // Reset hint timer since child is reading
+    clearHintTimer();
+    armHint();
+    hideHint();
   }
 }
 
-// Remove all non-alpha characters, lowercase
-function clean(w) {
-  return w.toLowerCase().replace(/[^a-z]/g, '');
-}
+// Clean word: lowercase, letters only
+function clean(w){ return w.toLowerCase().replace(/[^a-z]/g,''); }
 
-// ── THE MATCHER ──────────────────────────────
-// Returns true if `heard` is a reasonable match for `expected`
-// Tuned to be VERY forgiving for children's voices + imperfect STT
-function matches(heard, expected) {
-  if (!heard || !expected) return false;
+// ── THE MATCHER ──────────────────────────────────────
+// Intentionally very permissive — better to advance too
+// easily than to never advance at all
+function matches(heard, expected){
+  if(!heard||!expected) return false;
 
-  // Skip super short expected words unless exact (avoids noise matching "a", "I")
-  if (expected.length <= 1) return heard === expected;
+  // Always skip single-char expected words unless exact
+  // (prevents noise like "uh" matching "a")
+  if(expected.length===1) return heard===expected;
 
   // 1. Exact
-  if (heard === expected) return true;
+  if(heard===expected) return true;
 
-  // 2. One is a prefix of the other
-  //    e.g. child says "ele" for "elephant", or STT drops word endings
-  const minLen = Math.min(heard.length, expected.length);
-  if (minLen >= 3) {
-    if (expected.startsWith(heard.slice(0, minLen))) return true;
-    if (heard.startsWith(expected.slice(0, minLen)))  return true;
+  // 2. One contains the other (handles truncated words)
+  if(expected.includes(heard) && heard.length>=3) return true;
+  if(heard.includes(expected) && expected.length>=3) return true;
+
+  // 3. Either is prefix of the other (very common with kids + STT)
+  const shared = Math.min(heard.length, expected.length);
+  if(shared>=3 && heard.slice(0,shared)===expected.slice(0,shared)) return true;
+
+  // 4. Edit distance — generous thresholds
+  const d = lev(heard, expected);
+  const maxD = expected.length<=3 ? 1
+             : expected.length<=5 ? 2
+             : expected.length<=8 ? 3
+             : 4;
+  if(d<=maxD) return true;
+
+  // 5. Phonetic (Soundex)
+  if(expected.length>=4 && soundex(heard)===soundex(expected)) return true;
+
+  // 6. Consonant skeleton match (strip all vowels)
+  if(expected.length>=5){
+    const hc=noVowels(heard), ec=noVowels(expected);
+    if(hc.length>=2 && hc===ec) return true;
+    if(hc.length>=3 && ec.startsWith(hc.slice(0,3))) return true;
+    if(ec.length>=3 && hc.startsWith(ec.slice(0,3))) return true;
   }
 
-  // 3. Edit distance (Levenshtein)
-  //    Very forgiving thresholds:
-  //      ≤4 letters  → 1 edit allowed
-  //      ≤7 letters  → 2 edits
-  //      8+ letters  → 3 edits
-  const dist = lev(heard, expected);
-  const tol  = expected.length <= 4 ? 1 : expected.length <= 7 ? 2 : 3;
-  if (dist <= tol) return true;
-
-  // 4. Phonetic (Soundex) — catches "nite"/"night", "kat"/"cat" etc.
-  if (expected.length >= 4 && soundex(heard) === soundex(expected)) return true;
-
-  // 5. Double Metaphone-lite: strip vowels and compare consonant skeletons
-  //    Handles cases where vowels are heard differently
-  if (expected.length >= 5) {
-    const hc = consonants(heard);
-    const ec = consonants(expected);
-    if (hc.length >= 2 && ec.length >= 2) {
-      if (hc === ec) return true;
-      if (hc.startsWith(ec.slice(0,3)) || ec.startsWith(hc.slice(0,3))) return true;
-    }
-  }
+  // 7. First 4 chars match + reasonable length
+  if(heard.length>=4 && expected.length>=4 &&
+     heard.slice(0,4)===expected.slice(0,4)) return true;
 
   return false;
 }
 
-// Strip vowels, keep consonant skeleton
-function consonants(w) {
-  return w.replace(/[aeiou]/g, '');
-}
+function noVowels(w){ return w.replace(/[aeiou]/g,''); }
 
-// Levenshtein (memory-optimized, two-row)
-function lev(a, b) {
-  if (Math.abs(a.length - b.length) > 4) return 99; // early exit
-  let prev = Array.from({length: b.length+1}, (_,i) => i);
-  for (let i = 1; i <= a.length; i++) {
-    const curr = [i];
-    for (let j = 1; j <= b.length; j++) {
-      curr[j] = a[i-1] === b[j-1]
-        ? prev[j-1]
-        : 1 + Math.min(prev[j], curr[j-1], prev[j-1]);
-    }
-    prev = curr;
+// Two-row Levenshtein (fast)
+function lev(a,b){
+  if(Math.abs(a.length-b.length)>5) return 99;
+  let prev=[...Array(b.length+1).keys()];
+  for(let i=1;i<=a.length;i++){
+    const cur=[i];
+    for(let j=1;j<=b.length;j++)
+      cur[j]=a[i-1]===b[j-1]?prev[j-1]:1+Math.min(prev[j],cur[j-1],prev[j-1]);
+    prev=cur;
   }
   return prev[b.length];
 }
 
-// Simplified Soundex
-function soundex(s) {
-  const map = {b:1,f:1,p:1,v:1,c:2,g:2,j:2,k:2,q:2,s:2,x:2,z:2,d:3,t:3,l:4,m:5,n:5,r:6};
-  let r = s[0]?.toUpperCase() || '', prev = map[s[0]?.toLowerCase()] || 0;
-  for (let i = 1; i < s.length && r.length < 4; i++) {
-    const c = map[s[i].toLowerCase()];
-    if (c && c !== prev) r += c;
-    prev = c || 0;
+// Soundex
+function soundex(s){
+  const m={b:1,f:1,p:1,v:1,c:2,g:2,j:2,k:2,q:2,s:2,x:2,z:2,d:3,t:3,l:4,m:5,n:5,r:6};
+  let r=s[0]?.toUpperCase()||'', prev=m[s[0]?.toLowerCase()]||0;
+  for(let i=1;i<s.length&&r.length<4;i++){
+    const c=m[s[i].toLowerCase()];
+    if(c&&c!==prev) r+=c;
+    prev=c||0;
   }
   return r.padEnd(4,'0');
 }
 
-function advanceOne() {
-  nWords++; nStreak++;
-  idx++;
-  hintStep = 0;
+function advanceOne(){
+  nW++; nS++; idx++;
+  hintStep=0;
   hideHint();
   updateStats();
-  clearHintTimer();
-
-  if (idx >= words.length) {
-    stopListen();
-    celebrate();
-    return;
-  }
+  if(idx>=words.length){stopListen();celebrate();return;}
   renderText();
-  armHint();
+  updateDiag(lastSpoken, idx);
 }
 
-// ══════════════════════════════════════
-//  HINT SYSTEM — fully verbal
-// ══════════════════════════════════════
-function armHint() {
+// ════════════════════════════════════════
+//  HINT SYSTEM — fully verbal, time-based
+// ════════════════════════════════════════
+function armHint(){
   clearHintTimer();
-  hintTimer = setTimeout(giveHint, HINT_PAUSE);
+  // Poll every 500ms — give hint only when child has been silent for HINT_DELAY
+  hintTimer = setInterval(()=>{
+    const silentMs = Date.now() - lastSpeakTime;
+    if(silentMs >= HINT_DELAY && listening && idx < words.length){
+      giveHint();
+    }
+  }, 500);
 }
 
-function clearHintTimer() {
-  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+function clearHintTimer(){
+  if(hintTimer){clearInterval(hintTimer);hintTimer=null;}
 }
 
-function giveHint() {
-  if (!listening || idx >= words.length) return;
-
-  nHints++; nStreak = 0; updateStats();
+function giveHint(){
+  if(!listening || idx>=words.length) return;
+  nH++; nS=0; updateStats();
 
   const raw  = words[idx];
   const word = clean(raw);
 
-  if (hintStep === 0) {
-    // ── Hint 1: speak the first sound only ──
-    const sound = firstSound(word);
-    const msg   = `Hmm, let's try that word together. It starts with the sound… ${sound}… ${sound}… Can you say it?`;
-    showHint('🔊', 'Sound Hint', sound + '…', `First sound: "${sound}"`, msg);
-
-  } else if (hintStep === 1) {
-    // ── Hint 2: speak the first syllable ──
+  if(hintStep===0){
+    const snd = firstSound(word);
+    const msg = `Hmm, let's try that word. It starts with the sound… ${snd}… ${snd}… Can you say the rest?`;
+    showHint('🔊','Sound Hint', snd+'…', `First sound: "${snd}"`, msg);
+  } else if(hintStep===1){
     const syl = firstSyllable(word);
-    const msg  = `Good try! The beginning of the word sounds like… ${syl}… Can you finish it? ${syl}…`;
-    showHint('💬', 'Syllable Hint', syl + '-', `First part: "${syl}"`, msg);
-
+    const msg = `Good try! The beginning sounds like… ${syl}… ${syl}… Can you finish the word?`;
+    showHint('💬','Syllable Hint', syl+'-', `First part: "${syl}"`, msg);
   } else {
-    // ── Hint 3: speak the full word ──
     const msg = `That's a tricky one! The word is… ${raw}… ${raw}. Can you say it? ${raw}!`;
-    showHint('🌟', 'The Word Is…', raw, 'Try saying the whole word!', msg);
-    hintStep = -1; // will wrap to 0
+    showHint('🌟','The Word Is…', raw, 'Try the whole word!', msg);
+    hintStep=-1;
   }
-
   hintStep++;
-  hintTimer = setTimeout(giveHint, HINT_NEXT);
+  // After hint is spoken, reset the silence clock so next hint waits full HINT_NEXT
+  setTimeout(()=>{ lastSpeakTime = Date.now() - HINT_DELAY + HINT_NEXT; }, 100);
 }
 
-function showHint(icon, tag, wordDisplay, sub, toSpeak) {
+function showHint(icon,tag,wordDisplay,sub,toSpeak){
   document.getElementById('hintIcon').textContent = icon;
   document.getElementById('hintTag').textContent  = tag;
   document.getElementById('hintWord').textContent = wordDisplay;
   document.getElementById('hintSub').textContent  = sub;
-
-  const box = document.getElementById('hintBox');
+  const box=document.getElementById('hintBox');
   box.classList.remove('show');
-  void box.offsetWidth;           // force re-animation
+  void box.offsetWidth;
   box.classList.add('show');
-
-  speak(toSpeak);                 // ← ALWAYS spoken aloud
+  speak(toSpeak);
 }
 
-function hideHint() { document.getElementById('hintBox').classList.remove('show'); }
+function hideHint(){ document.getElementById('hintBox').classList.remove('show'); }
 
-function sayAgain() {
-  // Re-read the current hint level's message
-  const word = clean(words[idx] || '');
-  const step = ((hintStep - 1) + 3) % 3; // what was just shown
-  if (step === 0) speak(`It starts with the sound… ${firstSound(word)}… ${firstSound(word)}`);
-  else if (step === 1) speak(`The beginning sounds like… ${firstSyllable(word)}… ${firstSyllable(word)}`);
+function sayAgain(){
+  const step=((hintStep-1)+3)%3;
+  const word=clean(words[idx]||'');
+  if(step===0) speak(`It starts with the sound… ${firstSound(word)}… ${firstSound(word)}`);
+  else if(step===1) speak(`The beginning sounds like… ${firstSyllable(word)}… ${firstSyllable(word)}`);
   else speak(`The word is… ${words[idx]}… ${words[idx]}`);
 }
 
-// ══════════════════════════════════════
-//  TEXT-TO-SPEECH  (child-friendly voice)
-// ══════════════════════════════════════
-function speak(text) {
-  const synth = window.speechSynthesis;
+// ════════════════════════════════════════
+//  TEXT-TO-SPEECH
+// ════════════════════════════════════════
+function speak(text){
+  const synth=window.speechSynthesis;
   synth.cancel();
-
-  const u = new SpeechSynthesisUtterance(text);
-  u.rate   = 0.82;    // slightly slow — easier for kids to follow
-  u.pitch  = 1.15;    // a little higher — friendlier tone
-  u.volume = 1.0;
-
-  // Pick best available voice (friendly, clear)
-  const voices = synth.getVoices();
-  const preferred = [
-    'Samantha','Karen','Victoria','Moira',   // macOS
-    'Microsoft Zira','Microsoft Aria',        // Windows
-    'Google US English','Google UK English Female'
-  ];
-  const pick = preferred.reduce((found, name) =>
-    found || voices.find(v => v.name.includes(name)), null);
-  if (pick) u.voice = pick;
-
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=0.82; u.pitch=1.15; u.volume=1.0;
+  const voices=synth.getVoices();
+  const names=['Samantha','Karen','Victoria','Moira','Microsoft Zira','Microsoft Aria','Google US English','Google UK English Female'];
+  const pick=names.reduce((f,n)=>f||voices.find(v=>v.name.includes(n)),null);
+  if(pick) u.voice=pick;
   synth.speak(u);
 }
 
-// ══════════════════════════════════════
-//  PHONICS HELPERS
-// ══════════════════════════════════════
-function firstSound(w) {
-  const digraphs = ['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk'];
-  for (const d of digraphs) if (w.startsWith(d)) return d;
-  return w[0] || '';
+// ════════════════════════════════════════
+//  PHONICS
+// ════════════════════════════════════════
+function firstSound(w){
+  const d2=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
+  for(const d of d2) if(w.startsWith(d)) return d;
+  return w[0]||'';
 }
 
-function firstSyllable(w) {
-  if (!w || w.length <= 3) return w;
-  const V = 'aeiou';
-  let vi = -1;
-  for (let i = 0; i < w.length; i++) { if (V.includes(w[i])) { vi = i; break; } }
-  if (vi < 0)  return w.slice(0, Math.min(3, w.length));
-  if (vi === 0) return w.slice(0, Math.min(3, w.length));
-  if (vi + 1 < w.length && !V.includes(w[vi+1])) return w.slice(0, vi+2);
-  return w.slice(0, vi+1);
+function firstSyllable(w){
+  if(!w||w.length<=3) return w;
+  const V='aeiou';
+  let vi=-1;
+  for(let i=0;i<w.length;i++){if(V.includes(w[i])){vi=i;break;}}
+  if(vi<0) return w.slice(0,Math.min(3,w.length));
+  if(vi===0) return w.slice(0,Math.min(3,w.length));
+  if(vi+1<w.length&&!V.includes(w[vi+1])) return w.slice(0,vi+2);
+  return w.slice(0,vi+1);
 }
 
-// ══════════════════════════════════════
-//  DEBUG PANEL
-// ══════════════════════════════════════
-function toggleDebug() {
-  dbgOpen = !dbgOpen;
-  document.getElementById('dbgLog').classList.toggle('show', dbgOpen);
-  document.getElementById('dbgToggle').textContent = dbgOpen
-    ? '🔍 Hide mic log (tap to close)'
-    : '🔍 Show what the mic hears (tap to expand)';
-}
-
-function log(msg, cls = 'di') {
-  const panel = document.getElementById('dbgLog');
-  const p = document.createElement('p');
-  p.className = cls; p.textContent = new Date().toLocaleTimeString('en',{hour12:false}) + ' ' + msg;
-  panel.appendChild(p);
-  panel.scrollTop = panel.scrollHeight;
-  while (panel.children.length > 50) panel.removeChild(panel.firstChild);
-}
-
-// ══════════════════════════════════════
+// ════════════════════════════════════════
 //  STATS & CELEBRATE
-// ══════════════════════════════════════
-function updateStats() {
-  document.getElementById('sWords').textContent  = nWords;
-  document.getElementById('sHints').textContent  = nHints;
-  document.getElementById('sStreak').textContent = nStreak;
+// ════════════════════════════════════════
+function updateStats(){
+  document.getElementById('sW').textContent=nW;
+  document.getElementById('sH').textContent=nH;
+  document.getElementById('sS').textContent=nS;
 }
 
-function celebrate() {
+function celebrate(){
   document.getElementById('celebrate').classList.add('show');
-  speak('Wow! You finished the whole book! That was amazing reading! You should be so proud!');
+  speak('Wow! You finished the whole book! That was amazing reading! You should be so proud of yourself!');
 }
 
-function resetSession() {
+function resetSession(){
   document.getElementById('celebrate').classList.remove('show');
-  idx = 0; hintStep = 0; nWords = 0; nHints = 0; nStreak = 0;
-  updateStats(); hideHint();
-  if (words.length) renderText();
+  idx=0;hintStep=0;nW=0;nH=0;nS=0;
+  updateStats();hideHint();
+  if(words.length) renderText();
 }
 </script>
 </body>

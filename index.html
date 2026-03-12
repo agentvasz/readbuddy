@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- v9.3 - gemini-2.5-flash -->
+<!-- v9.4 - improved hint timing + voice -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -251,7 +251,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 var allPages=[], words=[], selectedIdx=0;
 var idx=0, listening=false, recog=null, hintTimer=null, hintStep=0;
 var nW=0,nH=0,nS=0, lastSpeakTime=0, lastHeard=[], currentFileName='';
-var HINT_DELAY=4000, HINT_NEXT=5000;
+var HINT_DELAY=5000; // 5s silence before first hint
+var hintSpeaking=false; // true while TTS is playing
 var GEMINI_KEY='';
 
 var FRONT=['copyright','isbn','publisher','published','rights','printed','library',
@@ -687,7 +688,9 @@ function advanceOne(){
 function armHint(){
   clearHintTimer();
   hintTimer=setInterval(function(){
-    if(Date.now()-lastSpeakTime>=HINT_DELAY&&listening&&idx<words.length)giveHint();
+    // Don't fire a new hint while TTS is still speaking, or if child is actively reading
+    if(!hintSpeaking && Date.now()-lastSpeakTime>=HINT_DELAY && listening && idx<words.length)
+      giveHint();
   },500);
 }
 function clearHintTimer(){if(hintTimer){clearInterval(hintTimer);hintTimer=null;}}
@@ -698,18 +701,18 @@ function giveHint(){
   if(hintStep===0){
     var snd=firstSound(word);
     showHint('🔊','Sound Hint',snd+'…','First sound: "'+snd+'"',
-      "Hmm, let's try that word. It starts with the sound… "+snd+"… "+snd+"… Can you say the rest?");
+      "Let's try that word together. It starts with the sound… "+snd+". Can you say the whole word?");
   }else if(hintStep===1){
     var syl=firstSyllable(word);
-    showHint('💬','Syllable Hint',syl+'-','First part: "'+syl+'"',
-      "Good try! The beginning sounds like… "+syl+"… "+syl+"… Can you finish the word?");
+    showHint('💬','Try This Part',syl+'-','Say this part: "'+syl+'"',
+      "Good effort! Listen carefully… the first part is… "+syl+". Now you try the whole word.");
   }else{
-    showHint('🌟','The Word Is…',raw,'Try the whole word!',
-      "That's a tricky one! The word is… "+raw+"… "+raw+". Can you say it? "+raw+"!");
+    showHint('🌟','The Word Is…',raw,'Now you say it!',
+      "That is a tricky one. The word is… "+raw+". Can you say it? "+raw+".");
     hintStep=-1;
   }
   hintStep++;
-  lastSpeakTime=Date.now()-HINT_DELAY+HINT_NEXT;
+  // lastSpeakTime is reset in speak() once TTS finishes — giving child a fresh 5s window
 }
 function showHint(icon,tag,wordDisplay,sub,toSpeak){
   document.getElementById('hintIcon').textContent=icon;
@@ -723,21 +726,44 @@ function showHint(icon,tag,wordDisplay,sub,toSpeak){
 function hideHint(){document.getElementById('hintBox').classList.remove('show');}
 function sayAgain(){
   var step=((hintStep-1)+3)%3,word=clean(words[idx]||'');
-  if(step===0)speak('It starts with… '+firstSound(word)+'… '+firstSound(word));
-  else if(step===1)speak('The beginning is… '+firstSyllable(word)+'… '+firstSyllable(word));
-  else speak('The word is… '+(words[idx]||'')+'… '+(words[idx]||''));
+  if(step===0)speak('It starts with the sound… '+firstSound(word)+'… '+firstSound(word)+'. You try!');
+  else if(step===1)speak('The first part is… '+firstSyllable(word)+'… '+firstSyllable(word)+'. Now you say the whole word.');
+  else speak('The word is… '+(words[idx]||'')+'. '+(words[idx]||'')+'. Your turn!');
 }
 function speak(text){
-  var synth=window.speechSynthesis;synth.cancel();
+  var synth=window.speechSynthesis;
+  synth.cancel();
   var u=new SpeechSynthesisUtterance(text);
-  u.rate=0.82;u.pitch=1.15;u.volume=1.0;
+  // Smooth, professional pace — slightly slower, natural pitch
+  u.rate=0.78; u.pitch=1.0; u.volume=1.0;
   var voices=synth.getVoices();
-  var names=['Samantha','Karen','Victoria','Moira','Microsoft Zira','Microsoft Aria','Google US English','Google UK English Female'];
+  // Priority order: Neural/premium voices first, then reliable fallbacks
+  var names=[
+    'Google UK English Female',  // smooth, clear, widely available in Chrome
+    'Microsoft Aria',            // excellent neural voice on Edge/Windows
+    'Microsoft Jenny',           // warm neural voice
+    'Samantha',                  // macOS built-in, very natural
+    'Karen',                     // macOS Australian, clear
+    'Victoria',                  // macOS, good clarity
+    'Google US English',         // fallback Chrome
+    'Microsoft Zira'             // fallback Edge
+  ];
   var pick=null;
   for(var n=0;n<names.length&&!pick;n++)
     for(var v=0;v<voices.length&&!pick;v++)
-      if(voices[v].name.indexOf(names[n])>=0)pick=voices[v];
-  if(pick)u.voice=pick;
+      if(voices[v].name.indexOf(names[n])>=0) pick=voices[v];
+  if(pick) u.voice=pick;
+  // Mark speaking so hint timer won't fire mid-sentence
+  hintSpeaking=true;
+  u.onend=function(){
+    hintSpeaking=false;
+    // Reset the silence clock AFTER speech ends — child now has a fresh 5s window to try
+    lastSpeakTime=Date.now();
+  };
+  u.onerror=function(){
+    hintSpeaking=false;
+    lastSpeakTime=Date.now();
+  };
   synth.speak(u);
 }
 function firstSound(w){

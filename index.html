@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- v9.8 - session IDs + strict match + phonemes -->
+<!-- v9.9 - cooldown + sequential match + no skip -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -638,7 +638,7 @@ function startRecog(){
 function startListen(){
   if(!(window.SpeechRecognition||window.webkitSpeechRecognition)){alert('Please use Chrome or Edge!');return;}
   listening=true; childHasSpoken=false; hintPinned=false; hintStep=0;
-  lastSpeakTime=Date.now()+999999;
+  lastSpeakTime=Date.now()+999999; lastAdvanceTime=0;
   document.getElementById('bigBtn').classList.add('on');
   document.getElementById('bigBtn').textContent='\u23f9\ufe0f';
   document.getElementById('btnLbl').textContent="I'm Listening!";
@@ -654,24 +654,59 @@ function stopListen(){
   document.getElementById('btnLbl').textContent='Start Reading!';
 }
 
+var lastAdvanceTime=0; // cooldown to prevent same-breath double-advances
+
 function onResult(ev,mySession){
   if(mySession!==sessionId||hintSpeaking) return;
-  var heard=[];
+
+  // Collect only new, unprocessed final results
+  var newWords=[];
   for(var r=0;r<ev.results.length;r++){
     if(!ev.results[r].isFinal) continue;
     var key=mySession+':'+r;
     if(processedResults[key]) continue;
     processedResults[key]=true;
+    // Only take top alternative (most confident)
     ev.results[r][0].transcript.toLowerCase()
-      .replace(/[^a-z0-9'\s]/g,' ').trim().split(/\s+/)
-      .filter(Boolean).forEach(function(w){heard.push(w);});
+      .replace(/[^a-z0-9'\s]/g,' ').trim()
+      .split(/\s+/).filter(Boolean)
+      .forEach(function(w){ newWords.push(w); });
   }
-  if(!heard.length) return;
-  if(!childHasSpoken){childHasSpoken=true;armHint();}
+  if(!newWords.length) return;
+
+  if(!childHasSpoken){ childHasSpoken=true; armHint(); }
   lastSpeakTime=Date.now();
-  lastHeard=heard; updateDiag(heard,idx);
-  if(hintPinned){handleHintAttempt(heard);return;}
-  if(idx<words.length&&matchWord(heard[0],clean(words[idx]))){advanceOne();hideHint();}
+  lastHeard=newWords;
+  updateDiag(newWords,idx);
+
+  // Route to hint handler if pinned
+  if(hintPinned){ handleHintAttempt(newWords); return; }
+
+  // Process heard words sequentially against story words
+  // Each heard word gets ONE chance to match the current expected word.
+  // If it doesn't match, we stop — we do NOT try the next heard word
+  // against the same or next expected word (prevents skipping).
+  for(var i=0; i<newWords.length; i++){
+    if(idx>=words.length) break;
+
+    var now=Date.now();
+    // Cooldown: must be at least 500ms since last advance
+    // This prevents the same spoken word being matched twice
+    // (e.g. repeated words like "the the" in the text)
+    if(now-lastAdvanceTime < 500) break;
+
+    var expected=clean(words[idx]);
+    if(matchWord(newWords[i], expected)){
+      lastAdvanceTime=now;
+      advanceOne();
+      hideHint();
+      // After matching one word, stop processing this batch.
+      // The child must speak again for the next word.
+      break;
+    }
+    // No match — stop trying. Don't skip words.
+    break;
+  }
 }
 
 function clean(w){return(''+w).toLowerCase().replace(/[^a-z]/g,'');}
@@ -679,12 +714,17 @@ function matchWord(heard,expected){
   if(!heard||!expected) return false;
   heard=clean(heard); expected=clean(expected);
   if(!heard||!expected) return false;
+  // 1-char words: exact only
   if(expected.length<=1) return heard===expected;
+  // Exact match
   if(heard===expected) return true;
+  // Length difference too big — can't be a match
+  if(Math.abs(heard.length-expected.length)>2) return false;
+  // Levenshtein: 1 edit for short words, 2 for longer
+  // Deliberately strict — false positives cause skipping
   var d=lev(heard,expected);
-  if(d<=(expected.length<=4?1:2)) return true;
-  if(expected.length>=5&&heard.length>=4&&soundex(heard)===soundex(expected)) return true;
-  return false;
+  var maxD=expected.length<=5?1:2;
+  return d<=maxD;
 }
 function matches(h,e){return matchWord(h,e);}
 function lev(a,b){

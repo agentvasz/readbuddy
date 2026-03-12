@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- PDF rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<!-- OCR engine -->
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
 :root{--sun:#FFD166;--grass:#06D6A0;--berry:#EF476F;--blue:#4361EE;--text:#1a1a2e;--muted:#6b7280;}
@@ -23,9 +20,25 @@ header{text-align:center;padding:20px 16px 8px;}
 .warn-bar{background:#fff3cd;border:2px solid #ffc107;border-radius:12px;padding:9px 13px;margin-bottom:10px;font-size:.82rem;font-weight:700;color:#856404;display:none;}
 .warn-bar.show{display:block;}
 
-/* UPLOAD */
+/* CARDS */
 .card{background:#fff;border-radius:20px;padding:22px 18px;margin-top:10px;box-shadow:0 5px 22px rgba(0,0,0,.08);}
-.upload-card{text-align:center;border:3px dashed #b5d5f5;cursor:pointer;transition:all .2s;position:relative;}
+
+/* API KEY ENTRY */
+#apiSection{display:block;}
+.api-label{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--blue);margin-bottom:5px;}
+.api-sub{font-size:.82rem;color:var(--muted);font-weight:600;line-height:1.55;margin-bottom:14px;}
+.api-sub a{color:var(--blue);font-weight:800;}
+.key-row{display:flex;gap:8px;}
+.key-input{flex:1;border:2px solid #d0dcff;border-radius:12px;padding:10px 14px;font-family:'Nunito',sans-serif;font-size:.92rem;font-weight:700;color:var(--text);outline:none;transition:border .2s;}
+.key-input:focus{border-color:var(--blue);}
+.key-btn{background:var(--blue);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-family:'Fredoka One',cursive;font-size:.92rem;cursor:pointer;box-shadow:0 4px 0 #2d46c7;white-space:nowrap;}
+.key-btn:hover{transform:translateY(-2px);}
+.key-saved{font-size:.78rem;font-weight:700;color:#059669;margin-top:6px;display:none;}
+.key-saved.show{display:block;}
+
+/* UPLOAD */
+.upload-card{text-align:center;border:3px dashed #b5d5f5;cursor:pointer;transition:all .2s;position:relative;display:none;}
+.upload-card.show{display:block;}
 .upload-card:hover,.upload-card.over{border-color:var(--blue);background:#f0f5ff;}
 .upload-card input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
 .ico{font-size:2.6rem;display:block;margin-bottom:8px;animation:fl 3s ease-in-out infinite;}
@@ -36,23 +49,20 @@ header{text-align:center;padding:20px 16px 8px;}
 
 /* OCR PROGRESS */
 #ocrSection{display:none;}
-#ocrSection.show{display:block;}
-.ocr-card{text-align:center;}
-.ocr-title{font-family:'Fredoka One',cursive;font-size:1.2rem;color:var(--blue);margin-bottom:6px;}
-.ocr-sub{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:16px;line-height:1.5;}
-.ocr-preview{width:100%;max-height:180px;border-radius:10px;object-fit:contain;background:#f1f5ff;margin-bottom:12px;display:none;}
-.ocr-preview.show{display:block;}
-.prog-wrap{background:#e8f0fe;border-radius:99px;height:18px;overflow:hidden;margin-bottom:8px;}
-.prog-bar{height:100%;background:linear-gradient(90deg,var(--grass),var(--blue));border-radius:99px;transition:width .3s ease;width:0%;}
-.prog-label{font-family:'Fredoka One',cursive;font-size:.95rem;color:var(--blue);margin-bottom:4px;}
-.prog-detail{font-size:.78rem;color:var(--muted);font-weight:600;}
-.page-results{margin-top:12px;max-height:140px;overflow-y:auto;text-align:left;}
-.pr-item{font-size:.76rem;font-family:monospace;padding:2px 0;border-bottom:1px solid #f1f5ff;}
-.pr-ok{color:#059669;}.pr-warn{color:#d97706;}.pr-err{color:#dc2626;}
+.ocr-title{font-family:'Fredoka One',cursive;font-size:1.15rem;color:var(--blue);margin-bottom:5px;}
+.ocr-sub{font-size:.82rem;color:var(--muted);font-weight:600;margin-bottom:14px;line-height:1.5;}
+.page-thumb{width:100%;max-height:200px;object-fit:contain;border-radius:10px;background:#f1f5ff;margin-bottom:12px;display:none;}
+.page-thumb.show{display:block;}
+.prog-lbl{font-family:'Fredoka One',cursive;font-size:.95rem;color:var(--blue);margin-bottom:5px;}
+.prog-wrap{background:#e8f0fe;border-radius:99px;height:16px;overflow:hidden;margin-bottom:6px;}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--grass),var(--blue));border-radius:99px;transition:width .4s ease;width:0%;}
+.prog-detail{font-size:.78rem;color:var(--muted);font-weight:600;margin-bottom:10px;}
+.page-log{max-height:150px;overflow-y:auto;font-family:monospace;font-size:.74rem;}
+.pl-ok{color:#059669;}.pl-warn{color:#d97706;}.pl-err{color:#dc2626;}
+.pl-item{padding:2px 0;border-bottom:1px solid #f1f5ff;}
 
 /* PAGE PICKER */
 #pickerSection{display:none;}
-#pickerSection.show{display:block;}
 .page-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;margin:12px 0;}
 .page-item{border:2px solid #e5e7eb;border-radius:11px;padding:10px 13px;cursor:pointer;transition:all .18s;background:#fafafa;}
 .page-item:hover{border-color:var(--blue);background:#f0f5ff;}
@@ -71,7 +81,6 @@ header{text-align:center;padding:20px 16px 8px;}
 
 /* READER */
 #readerSection{display:none;}
-#readerSection.show{display:block;}
 .bookbar{background:#fff;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 14px rgba(0,0,0,.07);}
 .bico{width:32px;height:42px;background:linear-gradient(135deg,#9B5DE5,var(--blue));border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
 .bname{flex:1;font-weight:800;font-size:.83rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
@@ -134,43 +143,52 @@ header{text-align:center;padding:20px 16px 8px;}
 <div class="app">
   <div class="warn-bar" id="warnBar">⚠️ Please use <strong>Chrome or Edge</strong> — voice won't work in other browsers!</div>
 
-  <!-- STEP 1: Upload -->
+  <!-- STEP 1: API Key -->
+  <div class="card" id="apiSection">
+    <div class="api-label">🔑 Enter your Gemini API Key</div>
+    <div class="api-sub">
+      Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> → "Create API key".<br>
+      Your key stays in your browser only — never sent anywhere except Google.
+    </div>
+    <div class="key-row">
+      <input type="password" class="key-input" id="apiKeyInput" placeholder="AIzaSy…" autocomplete="off"/>
+      <button class="key-btn" onclick="saveKey()">Save Key →</button>
+    </div>
+    <div class="key-saved" id="keySaved">✅ Key saved! Now upload your book below.</div>
+  </div>
+
+  <!-- STEP 2: Upload -->
   <div class="card upload-card" id="uploadZone">
     <input type="file" id="pdfInput" accept=".pdf"/>
     <span class="ico">📚</span>
     <h2>Upload Your Book!</h2>
-    <p>Works with any PDF — even picture books! 📸</p>
+    <p>Works with picture books, scanned books, any PDF!</p>
     <span class="ucta">Choose a Book</span>
   </div>
 
-  <!-- STEP 2: OCR Progress -->
-  <div id="ocrSection">
-    <div class="card ocr-card">
-      <div class="ocr-title">🔍 Reading your book…</div>
-      <div class="ocr-sub" id="ocrSub">Preparing pages — this takes about 5–15 seconds per page for picture books.</div>
-      <canvas id="pageCanvas" style="display:none"></canvas>
-      <img id="ocrPreview" class="ocr-preview" alt="Current page being read"/>
-      <div class="prog-label" id="progLabel">Starting…</div>
-      <div class="prog-wrap"><div class="prog-bar" id="ocrBar"></div></div>
-      <div class="prog-detail" id="progDetail">Please wait…</div>
-      <div class="page-results" id="pageResults"></div>
+  <!-- STEP 3: OCR Progress -->
+  <div class="card" id="ocrSection">
+    <div class="ocr-title">🤖 Gemini is reading your book…</div>
+    <div class="ocr-sub" id="ocrSub">Sending each page to Google's AI for accurate text recognition.</div>
+    <img id="pageThumb" class="page-thumb" alt="Current page"/>
+    <div class="prog-lbl" id="progLbl">Starting…</div>
+    <div class="prog-wrap"><div class="prog-bar" id="ocrBar"></div></div>
+    <div class="prog-detail" id="progDetail">Please wait…</div>
+    <div class="page-log" id="pageLog"></div>
+  </div>
+
+  <!-- STEP 4: Page Picker -->
+  <div class="card" id="pickerSection">
+    <h3 style="font-family:'Fredoka One',cursive;color:var(--blue);font-size:1.15rem;margin-bottom:5px;">📍 Where does the story start?</h3>
+    <p style="font-size:.82rem;color:var(--muted);font-weight:600;line-height:1.5;">Tap the page where the real story begins. ⭐ = our best guess.</p>
+    <div class="page-list" id="pageList"></div>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="confirmStart()">✅ Start reading here!</button>
+      <button class="btn-secondary" onclick="startFromPage(0)">Use page 1</button>
     </div>
   </div>
 
-  <!-- STEP 3: Page Picker -->
-  <div id="pickerSection">
-    <div class="card">
-      <h3 style="font-family:'Fredoka One',cursive;color:var(--blue);font-size:1.15rem;margin-bottom:5px;">📍 Where does the story start?</h3>
-      <p style="font-size:.82rem;color:var(--muted);font-weight:600;line-height:1.5;">Tap the page where the real story begins. ⭐ = our best guess.</p>
-      <div class="page-list" id="pageList"></div>
-      <div class="btn-row">
-        <button class="btn-primary" onclick="confirmStart()">✅ Start reading here!</button>
-        <button class="btn-secondary" onclick="startFromPage(0)">Use page 1</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 4: Reader -->
+  <!-- STEP 5: Reader -->
   <div id="readerSection">
     <div class="bookbar">
       <div class="bico">📖</div>
@@ -224,7 +242,7 @@ header{text-align:center;padding:20px 16px 8px;}
 
 <script>
 // ══════════════════════════════════════
-//  CONFIG
+//  SETUP
 // ══════════════════════════════════════
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -233,10 +251,11 @@ var allPages=[], words=[], selectedIdx=0;
 var idx=0, listening=false, recog=null, hintTimer=null, hintStep=0;
 var nW=0,nH=0,nS=0, lastSpeakTime=0, lastHeard=[], currentFileName='';
 var HINT_DELAY=4000, HINT_NEXT=5000;
+var GEMINI_KEY='';
 
 var FRONT=['copyright','isbn','publisher','published','rights','printed','library',
   'contents','dedication','acknowledgment','foreword','preface','illustrated',
-  'trademark','registered','hardcover','paperback','ebook','translation','www','http'];
+  'trademark','registered','hardcover','paperback','ebook','translation'];
 var STORY=['once','was','were','had','they','said','asked','called','looked',
   'walked','ran','came','went','thought','felt','saw','heard','little','big','one day'];
 
@@ -249,7 +268,26 @@ window.addEventListener('load', function(){
   var ua=navigator.userAgent;
   if(!(/Chrome/.test(ua)&&/Google Inc/.test(navigator.vendor))&&!/Edg/.test(ua))
     document.getElementById('warnBar').classList.add('show');
+  // Load saved key from localStorage
+  var saved=localStorage.getItem('gemini_key');
+  if(saved){ GEMINI_KEY=saved; document.getElementById('apiKeyInput').value=saved; showUpload(); }
 });
+
+// ══════════════════════════════════════
+//  API KEY
+// ══════════════════════════════════════
+function saveKey(){
+  var key=document.getElementById('apiKeyInput').value.trim();
+  if(!key||key.length<10){ alert('Please enter a valid API key!'); return; }
+  GEMINI_KEY=key;
+  localStorage.setItem('gemini_key',key);
+  document.getElementById('keySaved').classList.add('show');
+  showUpload();
+}
+
+function showUpload(){
+  document.getElementById('uploadZone').classList.add('show');
+}
 
 // ══════════════════════════════════════
 //  UPLOAD
@@ -262,117 +300,159 @@ zone.addEventListener('drop',function(e){e.preventDefault();zone.classList.remov
 inp.addEventListener('change',function(e){if(e.target.files[0])loadPDF(e.target.files[0]);});
 
 // ══════════════════════════════════════
-//  PDF → IMAGES → OCR
+//  PDF → PAGE IMAGES → GEMINI OCR
 // ══════════════════════════════════════
-async function loadPDF(file) {
-  currentFileName = file.name.replace(/\.pdf$/i,'');
-  zone.style.display='none';
+async function loadPDF(file){
+  if(!GEMINI_KEY){ alert('Please enter your Gemini API key first!'); return; }
+  currentFileName=file.name.replace(/\.pdf$/i,'');
+  zone.classList.remove('show');
   document.getElementById('ocrSection').style.display='block';
   allPages=[];
 
-  var buf = await file.arrayBuffer();
-  var pdf = await pdfjsLib.getDocument({
-    data: buf,
+  var buf=await file.arrayBuffer();
+  var pdf=await pdfjsLib.getDocument({
+    data:buf,
     cMapUrl:'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
     cMapPacked:true
   }).promise;
 
-  var numPages = pdf.numPages;
-  var canvas   = document.getElementById('pageCanvas');
-  var ctx      = canvas.getContext('2d');
-  var preview  = document.getElementById('ocrPreview');
-  var results  = document.getElementById('pageResults');
+  var numPages=pdf.numPages;
+  var canvas=document.createElement('canvas');
+  var ctx=canvas.getContext('2d');
 
-  document.getElementById('ocrSub').textContent =
-    numPages + ' pages found. Reading each page — picture books may take 10–20 sec per page.';
+  document.getElementById('ocrSub').textContent=
+    numPages+' pages found. Sending each page to Gemini for accurate text recognition…';
 
-  // Init Tesseract worker once (reuse across pages = much faster)
-  var worker = await Tesseract.createWorker('eng', 1, {
-    logger: function(m) {
-      if (m.status === 'recognizing text') {
-        document.getElementById('progDetail').textContent =
-          'OCR: ' + Math.round(m.progress * 100) + '%';
-      }
-    }
-  });
+  for(var p=1;p<=numPages;p++){
+    var pct=Math.round(((p-1)/numPages)*100);
+    document.getElementById('ocrBar').style.width=pct+'%';
+    document.getElementById('progLbl').textContent='Page '+p+' of '+numPages+' ('+pct+'% done)';
+    document.getElementById('progDetail').textContent='Rendering page '+p+'…';
 
-  for (var p = 1; p <= numPages; p++) {
-    // Update progress bar
-    var overallPct = Math.round(((p-1)/numPages)*100);
-    document.getElementById('ocrBar').style.width = overallPct+'%';
-    document.getElementById('progLabel').textContent =
-      'Page ' + p + ' of ' + numPages + ' (' + overallPct + '% done)';
+    // Render PDF page to canvas at 2x for quality
+    var pg=await pdf.getPage(p);
+    var vp=pg.getViewport({scale:2.0});
+    canvas.width=vp.width; canvas.height=vp.height;
+    await pg.render({canvasContext:ctx,viewport:vp}).promise;
 
-    // Step 1: render PDF page to canvas at high resolution for better OCR
-    var pg      = await pdf.getPage(p);
-    var scale   = 2.5; // higher = better OCR accuracy, slower
-    var vp      = pg.getViewport({scale: scale});
-    canvas.width  = vp.width;
-    canvas.height = vp.height;
-    await pg.render({canvasContext: ctx, viewport: vp}).promise;
+    // Show thumbnail
+    var dataUrl=canvas.toDataURL('image/jpeg',0.92);
+    var thumb=document.getElementById('pageThumb');
+    thumb.src=dataUrl; thumb.classList.add('show');
 
-    // Step 2: try native text extraction first (fast)
-    var ct       = await pg.getTextContent({normalizeWhitespace:true});
-    var nativeText = ct.items.map(function(i){return i.str||'';}).join(' ').replace(/\s+/g,' ').trim();
-    var nativeWords = nativeText.split(' ').filter(function(w){return w.trim().length>1;});
+    // Try native text first (fast, free)
+    document.getElementById('progDetail').textContent='Checking for native text on page '+p+'…';
+    var ct=await pg.getTextContent({normalizeWhitespace:true});
+    var nativeText=ct.items.map(function(i){return i.str||'';}).join(' ').replace(/\s+/g,' ').trim();
+    var nativeWords=nativeText.split(' ').filter(function(w){return w.trim().length>1;});
 
     var finalText='', finalWords=[], method='';
 
-    if (nativeWords.length >= 5) {
-      // Native text works — use it (fast path)
-      finalText  = nativeText;
-      finalWords = nativeWords;
-      method     = 'native';
+    if(nativeWords.length>=8){
+      // Native text is good — skip Gemini for this page
+      finalText=nativeText; finalWords=nativeWords; method='native';
+      logPage(p, finalWords.length, method, finalWords.slice(0,4).join(' '));
     } else {
-      // No native text — run OCR on the rendered image
-      var dataUrl = canvas.toDataURL('image/png');
-
-      // Show preview of page being OCR'd
-      preview.src = dataUrl;
-      preview.classList.add('show');
-
-      document.getElementById('progDetail').textContent = 'Running OCR on page ' + p + '…';
-
-      var ocrResult = await worker.recognize(dataUrl);
-      finalText     = ocrResult.data.text.replace(/\s+/g,' ').trim();
-      finalWords    = finalText.split(' ').filter(function(w){return w.trim().length>1;});
-      method        = 'ocr';
+      // Send image to Gemini Vision
+      document.getElementById('progDetail').textContent='Asking Gemini to read page '+p+'…';
+      try{
+        var result=await geminiOCR(dataUrl);
+        finalText=result.replace(/\s+/g,' ').trim();
+        finalWords=finalText.split(' ').filter(function(w){return w.trim().length>0;});
+        method='gemini';
+        logPage(p, finalWords.length, method, finalWords.slice(0,4).join(' '));
+      } catch(e){
+        logPage(p, 0, 'error', e.message);
+        finalText=''; finalWords=[];
+      }
     }
-
-    // Log result
-    var item = document.createElement('div');
-    item.className = 'pr-item ' + (finalWords.length>5?'pr-ok':finalWords.length>0?'pr-warn':'pr-err');
-    item.textContent = 'Page ' + p + ' [' + method + ']: ' + finalWords.length + ' words'
-      + (finalWords.length>0 ? ' — "' + finalWords.slice(0,5).join(' ') + '…"' : ' (empty)');
-    results.appendChild(item);
-    results.scrollTop = results.scrollHeight;
 
     allPages.push({num:p, text:finalText, words:finalWords});
   }
 
-  await worker.terminate();
-
-  preview.classList.remove('show');
   document.getElementById('ocrBar').style.width='100%';
-  document.getElementById('progLabel').textContent='✅ All done!';
-
-  var total = allPages.reduce(function(s,p){return s+p.words.length;},0);
-  document.getElementById('progDetail').textContent =
-    total + ' total words extracted across ' + numPages + ' pages';
+  document.getElementById('progLbl').textContent='✅ All pages read!';
+  var total=allPages.reduce(function(s,p){return s+p.words.length;},0);
+  document.getElementById('progDetail').textContent=
+    total+' total words extracted. Building page picker…';
 
   setTimeout(function(){
     document.getElementById('ocrSection').style.display='none';
     buildPagePicker();
-  }, 1200);
+  },1000);
+}
+
+// ══════════════════════════════════════
+//  GEMINI VISION API CALL
+// ══════════════════════════════════════
+async function geminiOCR(dataUrl){
+  // Strip the data:image/jpeg;base64, prefix
+  var base64=dataUrl.split(',')[1];
+
+  var body={
+    contents:[{
+      parts:[
+        {
+          text: 'This is a page from a children\'s book. Please extract ALL the story text exactly as it appears on the page. Return ONLY the words from the story — no descriptions, no explanations, no punctuation changes. If there is no story text (e.g. it\'s a blank page or only has a picture), return the single word BLANK.'
+        },
+        {
+          inline_data:{
+            mime_type:'image/jpeg',
+            data:base64
+          }
+        }
+      ]
+    }],
+    generationConfig:{
+      temperature:0,
+      maxOutputTokens:1024
+    }
+  };
+
+  var resp=await fetch(
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key='+GEMINI_KEY,
+    {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    }
+  );
+
+  if(!resp.ok){
+    var err=await resp.json();
+    throw new Error(err.error&&err.error.message?err.error.message:'API error '+resp.status);
+  }
+
+  var data=await resp.json();
+
+  // Extract text from Gemini response
+  if(data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts){
+    var text=data.candidates[0].content.parts.map(function(p){return p.text||'';}).join(' ');
+    if(text.trim()==='BLANK') return '';
+    return text;
+  }
+  return '';
+}
+
+function logPage(pageNum, wordCount, method, preview){
+  var log=document.getElementById('pageLog');
+  var item=document.createElement('div');
+  var cls=wordCount>5?'pl-ok':wordCount>0?'pl-warn':'pl-err';
+  item.className='pl-item '+cls;
+  var icon=method==='gemini'?'🤖':method==='native'?'📄':'❌';
+  item.textContent=icon+' Page '+pageNum+' ['+method+']: '+wordCount+' words'
+    +(preview?' — "'+preview+'…"':'');
+  log.appendChild(item);
+  log.scrollTop=log.scrollHeight;
 }
 
 // ══════════════════════════════════════
 //  PAGE PICKER
 // ══════════════════════════════════════
-function scorePage(page, i) {
-  if (page.words.length < 5) return -999;
-  var score = page.words.length * 2;
-  var low   = page.text.toLowerCase();
+function scorePage(page,i){
+  if(page.words.length<5) return -999;
+  var score=page.words.length*2;
+  var low=page.text.toLowerCase();
   FRONT.forEach(function(w){if(low.indexOf(w)>=0)score-=40;});
   STORY.forEach(function(w){if(low.indexOf(w)>=0)score+=20;});
   var nums=(page.text.match(/\d/g)||[]).length;
@@ -381,11 +461,10 @@ function scorePage(page, i) {
   return score;
 }
 
-function buildPagePicker() {
+function buildPagePicker(){
   var list=document.getElementById('pageList');
   list.innerHTML='';
-
-  var bestScore=-Infinity, bestIdx=0;
+  var bestScore=-Infinity,bestIdx=0;
   for(var i=0;i<allPages.length;i++){
     var s=scorePage(allPages[i],i);
     if(s>bestScore){bestScore=s;bestIdx=i;}
@@ -396,34 +475,24 @@ function buildPagePicker() {
     var isGuess=(i===bestIdx);
     var low=page.text.toLowerCase();
     var isFront=FRONT.some(function(w){return low.indexOf(w)>=0;});
-
     var item=document.createElement('div');
     item.className='page-item'+(isGuess?' selected guess':'');
-
     var badge='';
     if(isGuess)      badge='<span class="pi-badge b-guess">⭐ Best guess</span>';
     else if(isFront) badge='<span class="pi-badge b-front">⚠️ Front matter</span>';
-    else if(page.words.length>15) badge='<span class="pi-badge b-story">📖 Story page</span>';
-
-    var preview=page.words.length>0
-      ? page.words.slice(0,18).join(' ')+'…'
-      : '(no text found on this page)';
-
+    else if(page.words.length>10) badge='<span class="pi-badge b-story">📖 Story page</span>';
+    var preview=page.words.length>0?page.words.slice(0,16).join(' ')+'…':'(no text found)';
     item.innerHTML=
       '<div class="pi-top">'+
-        '<span class="pi-num">Page '+page.num+' · '+page.words.length+' words</span>'+
-        badge+
+        '<span class="pi-num">Page '+page.num+' · '+page.words.length+' words</span>'+badge+
       '</div>'+
       '<div class="pi-preview">'+esc(preview)+'</div>';
-
     item.addEventListener('click',function(){
       document.querySelectorAll('.page-item').forEach(function(el){el.classList.remove('selected');});
-      item.classList.add('selected');
-      selectedIdx=i;
+      item.classList.add('selected'); selectedIdx=i;
     });
     list.appendChild(item);
   });
-
   document.getElementById('pickerSection').style.display='block';
 }
 
@@ -441,7 +510,7 @@ function startFromPage(pageIdx){
 }
 
 // ══════════════════════════════════════
-//  RENDER TEXT
+//  RENDER
 // ══════════════════════════════════════
 function renderText(){
   var el=document.getElementById('bookText');
@@ -471,8 +540,7 @@ function updateDiag(heardArr,curIdx){
   var expected=curIdx<words.length?clean(words[curIdx]):'(end)';
   var next=curIdx+1<words.length?clean(words[curIdx+1]):'';
   document.getElementById('diagExpect').innerHTML=
-    '<span class="ew">'+expected+'</span>'+
-    (next?' <span style="color:#6b7280;font-size:.85em">then:'+next+'</span>':'');
+    '<span class="ew">'+expected+'</span>'+(next?' <span style="color:#6b7280;font-size:.85em">then: '+next+'</span>':'');
   if(!heardArr.length){
     document.getElementById('diagHeard').innerHTML='<span style="color:#6b7280">—</span>';
     document.getElementById('diagResult').innerHTML='<span style="color:#6b7280">—</span>';
@@ -496,7 +564,7 @@ function updateDiag(heardArr,curIdx){
 }
 
 // ══════════════════════════════════════
-//  SPEECH RECOGNITION
+//  SPEECH
 // ══════════════════════════════════════
 function toggleListen(){listening?stopListen():startListen();}
 function startListen(){
@@ -522,10 +590,6 @@ function stopListen(){
   document.getElementById('bigBtn').textContent='🎤';
   document.getElementById('btnLbl').textContent='Start Reading!';
 }
-
-// ══════════════════════════════════════
-//  MATCHING
-// ══════════════════════════════════════
 function onResult(event){
   var pool={};
   for(var r=0;r<event.results.length;r++)
@@ -585,7 +649,7 @@ function advanceOne(){
 }
 
 // ══════════════════════════════════════
-//  HINTS — silence-based, fully verbal
+//  HINTS
 // ══════════════════════════════════════
 function armHint(){
   clearHintTimer();
@@ -643,10 +707,6 @@ function speak(text){
   if(pick)u.voice=pick;
   synth.speak(u);
 }
-
-// ══════════════════════════════════════
-//  PHONICS
-// ══════════════════════════════════════
 function firstSound(w){
   var d=['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk','wr','kn'];
   for(var i=0;i<d.length;i++)if(w.indexOf(d[i])===0)return d[i];
@@ -661,10 +721,6 @@ function firstSyllable(w){
   if(vi+1<w.length&&V.indexOf(w[vi+1])<0)return w.slice(0,vi+2);
   return w.slice(0,vi+1);
 }
-
-// ══════════════════════════════════════
-//  STATS & CELEBRATE
-// ══════════════════════════════════════
 function updateStats(){
   document.getElementById('sW').textContent=nW;
   document.getElementById('sH').textContent=nH;
@@ -681,12 +737,10 @@ function resetSession(){
 }
 function resetAll(){
   stopListen();
-  ['ocrSection','pickerSection','readerSection'].forEach(function(id){
-    document.getElementById(id).style.display='none';
-  });
-  zone.style.display='';inp.value='';
+  ['ocrSection','pickerSection','readerSection'].forEach(function(id){document.getElementById(id).style.display='none';});
+  zone.classList.add('show');inp.value='';
   words=[];allPages=[];idx=0;
-  document.getElementById('pageResults').innerHTML='';
+  document.getElementById('pageLog').innerHTML='';
 }
 </script>
 </body>

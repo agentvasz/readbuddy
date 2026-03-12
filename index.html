@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- v9.5 - fix premature hints + skip-ahead -->
+<!-- v9.6 - visibility + no skip + reliable hints -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -143,6 +143,7 @@ header{text-align:center;padding:20px 16px 8px;}
 </header>
 <div class="app">
   <div class="warn-bar" id="warnBar">⚠️ Please use <strong>Chrome or Edge</strong> — voice won't work in other browsers!</div>
+  <div class="warn-bar" id="visWarn" style="display:none;background:#fde8ef;border-color:#f87171;color:#c03060;">⚠️ <strong>Keep this tab open and visible</strong> — Chrome pauses the microphone when you switch away!</div>
 
   <!-- STEP 1: API Key -->
   <div class="card" id="apiSection">
@@ -276,6 +277,22 @@ window.addEventListener('load', function(){
   if(saved){ GEMINI_KEY=saved; document.getElementById('apiKeyInput').value=saved; showUpload(); }
 });
 
+// Page Visibility — Chrome pauses mic when tab is hidden
+document.addEventListener('visibilitychange', function(){
+  var bar=document.getElementById('visWarn');
+  if(document.hidden){
+    // Tab went background — show warning
+    if(bar) bar.style.display='block';
+    // Mic will be paused by browser; it will auto-restart via recog.onend when tab returns
+  } else {
+    // Tab is visible again — hide warning, nudge recognition to restart
+    if(bar) bar.style.display='none';
+    if(listening && recog){
+      try{ recog.stop(); }catch(e){}  // triggers onend which restarts it
+    }
+  }
+});
+
 // ══════════════════════════════════════
 //  API KEY
 // ══════════════════════════════════════
@@ -395,8 +412,8 @@ async function loadPDF(file){
       }
       // 4.5s gap keeps us safely under 15 req/min free tier
       if(p<numPages){
-        document.getElementById('progDetail').textContent='Page '+p+' done - pausing before next…';
-        await sleep(4500);
+        document.getElementById('progDetail').textContent='Page '+p+' done — brief pause…';
+        await sleep(2000);
       }
     }
 
@@ -612,7 +629,8 @@ function startListen(){
   recog.onend=function(){if(listening){try{recog.start();}catch(e){}}};
   try{recog.start();}catch(e){alert('Mic error: '+e.message);return;}
   listening=true;
-  childHasSpoken=false;          // reset — don't allow hints until first speech
+  childHasSpoken=false;           // reset — don't allow hints until first speech
+  lastResultIdx=-1;               // reset result index tracker
   lastSpeakTime=Date.now()+99999; // far future — hints can't fire until child speaks
   document.getElementById('bigBtn').classList.add('on');
   document.getElementById('bigBtn').textContent='⏹️';
@@ -627,41 +645,47 @@ function stopListen(){
   document.getElementById('bigBtn').textContent='🎤';
   document.getElementById('btnLbl').textContent='Start Reading!';
 }
+var lastResultIdx=-1; // tracks highest result index we've already acted on
+
 function onResult(event){
-  // Only use FINAL (committed) results — ignore interim/speculative transcripts
-  // which caused phantom word matches while child was mid-sentence
+  // Collect only NEW final results (ones we haven't processed yet)
   var pool={};
+  var gotNew=false;
   for(var r=0;r<event.results.length;r++){
-    if(!event.results[r].isFinal) continue; // skip interim results
+    if(!event.results[r].isFinal) continue;    // skip interim
+    if(r<=lastResultIdx) continue;             // skip already-processed results
+    lastResultIdx=r;
+    gotNew=true;
     for(var a=0;a<event.results[r].length;a++)
       event.results[r][a].transcript.toLowerCase()
         .replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean)
         .forEach(function(w){pool[w]=true;});
   }
-  var heardArr=Object.keys(pool);
-  if(!heardArr.length) return;
+  if(!gotNew || !Object.keys(pool).length) return;
 
-  // First speech — arm the hint timer now and reset silence clock
+  var heardArr=Object.keys(pool);
+
+  // Don't process mic input while app is speaking a hint — child is just listening
+  if(hintSpeaking) return;
+
+  // First speech — arm hint timer now
   if(!childHasSpoken){
     childHasSpoken=true;
-    lastSpeakTime=Date.now();
     armHint();
-  } else {
-    lastSpeakTime=Date.now(); // reset silence clock on every new word heard
   }
+  // Reset silence clock any time we hear speech
+  lastSpeakTime=Date.now();
 
   lastHeard=heardArr;
   updateDiag(heardArr,idx);
 
-  // Look-ahead of 2 only (not 6) — stay close to current word, don't leap ahead
-  var advance=-1;
-  outer:for(var off=0;off<2&&idx+off<words.length;off++){
-    var target=clean(words[idx+off]);
-    for(var h=0;h<heardArr.length;h++){
-      if(matches(heardArr[h],target)){advance=off;break outer;}
-    }
+  // Match ONLY the current expected word — no look-ahead jumping
+  var target=clean(words[idx]||'');
+  var matched=false;
+  for(var h=0;h<heardArr.length;h++){
+    if(matches(heardArr[h],target)){ matched=true; break; }
   }
-  if(advance>=0){for(var i=0;i<=advance;i++)advanceOne();hideHint();}
+  if(matched){ advanceOne(); hideHint(); }
 }
 function clean(w){return(''+w).toLowerCase().replace(/[^a-z]/g,'');}
 function matches(heard,expected){
@@ -709,9 +733,10 @@ function advanceOne(){
 function armHint(){
   clearHintTimer();
   hintTimer=setInterval(function(){
-    // Don't fire a new hint while TTS is still speaking, or if child is actively reading
-    if(!hintSpeaking && Date.now()-lastSpeakTime>=HINT_DELAY && listening && idx<words.length)
-      giveHint();
+    if(!listening || idx>=words.length) return;
+    if(hintSpeaking) return;  // still talking — don't stack hints
+    var elapsed=Date.now()-lastSpeakTime;
+    if(elapsed>=HINT_DELAY) giveHint();
   },500);
 }
 function clearHintTimer(){if(hintTimer){clearInterval(hintTimer);hintTimer=null;}}
@@ -774,17 +799,18 @@ function speak(text){
     for(var v=0;v<voices.length&&!pick;v++)
       if(voices[v].name.indexOf(names[n])>=0) pick=voices[v];
   if(pick) u.voice=pick;
-  // Mark speaking so hint timer won't fire mid-sentence
   hintSpeaking=true;
-  u.onend=function(){
-    hintSpeaking=false;
-    // Reset the silence clock AFTER speech ends — child now has a fresh 5s window to try
-    lastSpeakTime=Date.now();
-  };
-  u.onerror=function(){
+  var spokenAt=Date.now();
+  // Reset clock when speech ends — child gets a fresh 5s window to attempt the word
+  var resetAfterSpeak=function(){
+    if(!hintSpeaking) return; // already reset
     hintSpeaking=false;
     lastSpeakTime=Date.now();
   };
+  u.onend=resetAfterSpeak;
+  u.onerror=resetAfterSpeak;
+  // Hard fallback: if onend never fires (Chrome TTS bug), force-reset after 8s
+  setTimeout(resetAfterSpeak, 8000);
   synth.speak(u);
 }
 function firstSound(w){

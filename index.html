@@ -23,773 +23,608 @@
 
   body {
     font-family: 'Nunito', sans-serif;
-    background: var(--sky);
+    background: linear-gradient(180deg, #c9e8ff 0%, #e8f5ff 50%, #d4f0e8 100%);
     min-height: 100vh;
     color: var(--text);
   }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: linear-gradient(180deg, #c9e8ff 0%, #e8f5ff 40%, #d4f0e8 100%);
-    z-index: -1;
-  }
-
-  header {
-    text-align: center;
-    padding: 28px 20px 12px;
-  }
-
+  header { text-align: center; padding: 24px 20px 10px; }
   .logo {
     font-family: 'Fredoka One', cursive;
-    font-size: clamp(2rem, 6vw, 3rem);
+    font-size: clamp(2rem, 6vw, 2.8rem);
     color: var(--blue);
-    text-shadow: 3px 3px 0px rgba(67,97,238,0.18);
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    text-shadow: 3px 3px 0 rgba(67,97,238,0.15);
+    display: inline-flex; align-items: center; gap: 10px;
   }
+  .logo span { display: inline-block; animation: bounce 2.5s ease-in-out infinite; }
+  @keyframes bounce { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg) scale(1.1)} }
+  .tagline { font-size: 0.9rem; color: var(--muted); margin-top: 3px; font-weight: 600; }
 
-  .logo .book-emoji {
-    display: inline-block;
-    animation: bookBounce 2.5s ease-in-out infinite;
+  .app { max-width: 720px; margin: 0 auto; padding: 0 16px 60px; }
+
+  /* WARN */
+  .warn {
+    background: #fff3cd; border: 2px solid #ffc107; border-radius: 14px;
+    padding: 10px 14px; margin-bottom: 12px; font-size: 0.85rem;
+    font-weight: 700; color: #856404; display: none;
   }
+  .warn.show { display: block; }
 
-  @keyframes bookBounce {
-    0%, 100% { transform: rotate(-5deg); }
-    50% { transform: rotate(5deg) scale(1.1); }
-  }
-
-  .tagline { font-size: 0.95rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
-
-  .app { max-width: 760px; margin: 0 auto; padding: 0 18px 60px; }
-
-  /* ===== DEBUG PANEL ===== */
-  .debug-panel {
-    background: #1e1e2e;
-    color: #a6e3a1;
-    border-radius: 14px;
-    padding: 12px 16px;
-    font-family: monospace;
-    font-size: 0.78rem;
-    margin-bottom: 14px;
-    display: none;
-    max-height: 120px;
-    overflow-y: auto;
-  }
-  .debug-panel.visible { display: block; }
-  .debug-panel .debug-line { margin: 2px 0; }
-  .debug-panel .debug-line.match { color: #94e2d5; }
-  .debug-panel .debug-line.hint { color: #fab387; }
-  .debug-panel .debug-line.heard { color: #cdd6f4; }
-
-  .debug-toggle {
-    background: #1e1e2e;
-    color: #cdd6f4;
-    border: none;
-    border-radius: 8px;
-    padding: 5px 12px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    margin-bottom: 10px;
-    font-family: monospace;
-  }
-
-  /* ===== UPLOAD ===== */
+  /* UPLOAD */
   .upload-zone {
-    background: white;
-    border-radius: 28px;
-    padding: 38px 28px;
-    text-align: center;
-    border: 3px dashed #b5d5f5;
-    cursor: pointer;
-    transition: all 0.22s ease;
-    box-shadow: 0 8px 32px rgba(67,97,238,0.08);
+    background: white; border-radius: 24px; padding: 36px 24px;
+    text-align: center; border: 3px dashed #b5d5f5; cursor: pointer;
+    transition: all 0.2s; box-shadow: 0 6px 28px rgba(67,97,238,0.08);
     position: relative;
   }
-
-  .upload-zone:hover, .upload-zone.drag-over {
-    border-color: var(--blue);
-    background: #f0f5ff;
-    transform: translateY(-3px);
-    box-shadow: 0 14px 40px rgba(67,97,238,0.14);
+  .upload-zone:hover, .upload-zone.over {
+    border-color: var(--blue); background: #f0f5ff; transform: translateY(-2px);
+  }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .upload-icon { font-size: 3rem; display: block; margin-bottom: 10px; animation: float 3s ease-in-out infinite; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+  .upload-zone h2 { font-family: 'Fredoka One', cursive; font-size: 1.4rem; color: var(--blue); margin-bottom: 6px; }
+  .upload-zone p { color: var(--muted); font-size: 0.88rem; font-weight: 600; }
+  .upload-cta {
+    display: inline-block; margin-top: 14px; background: var(--blue); color: white;
+    font-family: 'Fredoka One', cursive; font-size: 1rem; padding: 10px 26px;
+    border-radius: 50px; pointer-events: none; box-shadow: 0 4px 0 #2d46c7;
   }
 
-  .upload-zone .upload-icon {
-    font-size: 3.6rem;
-    display: block;
-    margin-bottom: 14px;
-    animation: float 3s ease-in-out infinite;
-  }
+  /* LOADING */
+  .loading { text-align: center; padding: 16px; font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--blue); display: none; }
+  .loading.show { display: block; }
+  .spin { display: inline-block; width: 20px; height: 20px; border: 3px solid #c0d0ff; border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
 
-  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-
-  .upload-zone h2 {
-    font-family: 'Fredoka One', cursive;
-    font-size: 1.5rem;
-    color: var(--blue);
-    margin-bottom: 6px;
-  }
-
-  .upload-zone p { color: var(--muted); font-size: 0.92rem; font-weight: 600; }
-
-  .upload-zone input[type="file"] {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-  }
-
-  .upload-btn {
-    display: inline-block;
-    margin-top: 18px;
-    background: var(--blue);
-    color: white;
-    font-family: 'Fredoka One', cursive;
-    font-size: 1.05rem;
-    padding: 11px 30px;
-    border-radius: 50px;
-    pointer-events: none;
-    box-shadow: 0 4px 14px rgba(67,97,238,0.28);
-  }
-
-  /* ===== BOOK INFO ===== */
-  .book-info {
-    background: white;
-    border-radius: 20px;
-    padding: 14px 20px;
-    margin-top: 14px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
+  /* BOOK BAR */
+  .book-bar {
+    background: white; border-radius: 18px; padding: 12px 18px;
+    margin-top: 12px; display: flex; align-items: center; gap: 12px;
     box-shadow: 0 4px 18px rgba(0,0,0,0.07);
   }
-  .book-info.hidden { display: none; }
-
-  .book-cover-thumb {
-    width: 42px; height: 54px;
+  .book-bar.hidden { display: none; }
+  .book-icon {
+    width: 38px; height: 50px;
     background: linear-gradient(135deg, var(--lavender), var(--blue));
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.3rem; flex-shrink: 0;
-    box-shadow: 3px 3px 0 rgba(0,0,0,0.14);
+    border-radius: 5px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem; flex-shrink: 0; box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
   }
-
-  .book-meta { flex: 1; }
-  .book-title { font-weight: 800; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
-  .word-count { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
-
-  .change-book-btn {
-    background: #f1f5ff; color: var(--blue);
-    border: none; border-radius: 12px;
-    padding: 7px 13px; font-family: 'Nunito', sans-serif;
-    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  .book-name { flex: 1; font-weight: 800; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 220px; }
+  .book-count { font-size: 0.78rem; color: var(--muted); font-weight: 600; margin-top: 1px; }
+  .change-btn {
+    background: #f1f5ff; color: var(--blue); border: none; border-radius: 10px;
+    padding: 6px 12px; font-family: 'Nunito', sans-serif; font-weight: 700;
+    font-size: 0.8rem; cursor: pointer;
   }
-  .change-book-btn:hover { background: #dde6ff; }
+  .change-btn:hover { background: #dde6ff; }
 
-  /* ===== READER ===== */
-  .reader-section { margin-top: 18px; display: none; }
-  .reader-section.visible { display: block; }
+  /* READER */
+  .reader { margin-top: 14px; display: none; }
+  .reader.show { display: block; }
 
-  /* Mic status bar */
-  .mic-status {
-    background: white;
-    border-radius: 14px;
-    padding: 10px 18px;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 0.88rem;
-    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+  /* PROGRESS */
+  .prog-row {
+    background: white; border-radius: 14px; padding: 10px 16px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px; box-shadow: 0 3px 14px rgba(0,0,0,0.06);
   }
-  .mic-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: #d1d5db;
-    flex-shrink: 0;
-    transition: background 0.3s;
-  }
-  .mic-dot.active { background: var(--berry); animation: blink 1s ease-in-out infinite; }
-  .mic-dot.heard { background: var(--grass); animation: none; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .prog-label { font-weight: 800; font-size: 0.8rem; color: var(--muted); white-space: nowrap; }
+  .prog-bg { flex: 1; height: 12px; background: #e8f0fe; border-radius: 99px; overflow: hidden; }
+  .prog-fill { height: 100%; background: linear-gradient(90deg, var(--grass), var(--blue)); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+  .prog-pct { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--blue); min-width: 38px; text-align: right; }
 
-  .last-heard {
-    margin-left: auto;
-    font-size: 0.78rem;
-    color: var(--muted);
-    font-style: italic;
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  /* DEBUG — prominent so parent can see what's happening */
+  .debug-wrap { margin-bottom: 10px; }
+  .debug-toggle {
+    background: #1a1a2e; color: #06D6A0; border: none; border-radius: 10px;
+    padding: 5px 12px; font-family: 'Nunito', sans-serif; font-weight: 700;
+    font-size: 0.78rem; cursor: pointer; width: 100%; text-align: left;
+    letter-spacing: 0.3px;
   }
+  .debug-log {
+    background: #1a1a2e; border-radius: 0 0 10px 10px;
+    padding: 8px 12px; font-family: monospace; font-size: 0.76rem;
+    max-height: 100px; overflow-y: auto; display: none;
+  }
+  .debug-log.show { display: block; }
+  .debug-log p { margin: 1px 0; }
+  .dh { color: #FFD166; }   /* heard */
+  .dm { color: #06D6A0; }   /* matched */
+  .de { color: #EF476F; }   /* error/miss */
+  .di { color: #aaa; }      /* info */
 
-  /* Progress */
-  .progress-wrap {
-    background: white; border-radius: 14px;
-    padding: 12px 18px; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 12px;
-    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+  /* TEXT DISPLAY */
+  .book-text {
+    background: white; border-radius: 22px; padding: 22px;
+    min-height: 120px; box-shadow: 0 5px 24px rgba(0,0,0,0.07);
+    margin-bottom: 12px; line-height: 2.1;
+    font-size: clamp(1rem, 2.6vw, 1.25rem); font-weight: 600; color: #374151;
   }
-  .progress-label { font-weight: 800; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
-  .progress-bar-bg { flex: 1; height: 13px; background: #e8f0fe; border-radius: 99px; overflow: hidden; }
-  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--grass), var(--blue)); border-radius: 99px; transition: width 0.5s ease; width: 0%; }
-  .progress-pct { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--blue); min-width: 38px; text-align: right; }
+  .w { display: inline-block; margin: 2px 2px; padding: 2px 4px; border-radius: 5px; }
+  .w.done { color: #cbd5e1; }
+  .w.now {
+    background: var(--sun); color: var(--text); transform: scale(1.1);
+    border-radius: 7px; box-shadow: 0 2px 14px rgba(255,209,102,0.55);
+    animation: glow 1.2s ease-in-out infinite;
+  }
+  @keyframes glow { 0%,100%{box-shadow:0 2px 14px rgba(255,209,102,0.55)} 50%{box-shadow:0 2px 24px rgba(255,209,102,0.85)} }
 
-  /* Text display */
-  .text-display {
-    background: white; border-radius: 22px;
-    padding: 24px; min-height: 130px;
-    box-shadow: 0 6px 26px rgba(0,0,0,0.07);
-    margin-bottom: 14px;
-    line-height: 2;
-    font-size: clamp(1.05rem, 3vw, 1.28rem);
-    font-weight: 600; color: #374151;
-  }
-
-  .word { display: inline-block; margin: 1px 3px; padding: 2px 4px; border-radius: 6px; transition: all 0.18s; }
-  .word.read { color: #c4c9d4; }
-  .word.current {
-    background: var(--sun); color: var(--text);
-    transform: scale(1.1);
-    box-shadow: 0 2px 12px rgba(255,209,102,0.45);
-    animation: pulseWord 1.2s ease-in-out infinite;
-  }
-  @keyframes pulseWord {
-    0%,100% { box-shadow: 0 2px 12px rgba(255,209,102,0.45); }
-    50% { box-shadow: 0 2px 22px rgba(255,209,102,0.75); }
-  }
-
-  /* Hint box */
+  /* HINT BOX */
   .hint-box {
-    background: linear-gradient(135deg, #fff8e7, #fffbf0);
-    border: 3px solid var(--sun);
-    border-radius: 22px; padding: 18px 22px;
-    text-align: center; display: none;
-    animation: hintPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
-    box-shadow: 0 6px 22px rgba(255,209,102,0.22);
-    margin-bottom: 14px;
+    background: linear-gradient(135deg,#fff8e7,#fffbf0);
+    border: 3px solid var(--sun); border-radius: 22px; padding: 16px 20px;
+    text-align: center; margin-bottom: 12px;
+    box-shadow: 0 5px 20px rgba(255,209,102,0.2); display: none;
   }
-  .hint-box.visible { display: block; }
+  .hint-box.show { display: block; animation: pop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes pop { from{transform:scale(0.82) translateY(8px);opacity:0} to{transform:scale(1);opacity:1} }
 
-  @keyframes hintPop {
-    from { transform: scale(0.8) translateY(10px); opacity: 0; }
-    to { transform: scale(1) translateY(0); opacity: 1; }
+  .hint-icon { font-size: 2rem; display: block; margin-bottom: 4px; }
+  .hint-tag { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #c8820a; margin-bottom: 2px; }
+  .hint-word { font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: var(--text); letter-spacing: 3px; }
+  .hint-sub { font-size: 0.82rem; color: #a07020; font-weight: 600; margin-top: 4px; }
+  .say-again {
+    margin-top: 10px; background: var(--sun); border: none; border-radius: 50px;
+    padding: 7px 20px; font-family: 'Fredoka One', cursive; font-size: 0.92rem;
+    cursor: pointer; color: var(--text); box-shadow: 0 3px 0 #c8820a; transition: all 0.18s;
   }
+  .say-again:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #c8820a; }
 
-  .hint-emoji { font-size: 1.8rem; display: block; margin-bottom: 6px; animation: wiggle 0.5s ease; }
-  @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
-  .hint-level { font-size: 0.73rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #d4860a; margin-bottom: 3px; }
-  .hint-text { font-family: 'Fredoka One', cursive; font-size: 1.9rem; color: var(--text); letter-spacing: 2px; }
-  .hint-subtext { font-size: 0.85rem; color: #b07a20; font-weight: 600; margin-top: 5px; }
-
-  .speak-btn {
-    margin-top: 10px;
-    background: var(--sun); border: none; border-radius: 50px;
-    padding: 7px 20px; font-family: 'Fredoka One', cursive;
-    font-size: 0.95rem; cursor: pointer; color: var(--text);
-    box-shadow: 0 3px 0 #d4940a; transition: all 0.18s;
-  }
-  .speak-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #d4940a; }
-
-  /* Big button */
-  .listen-area { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0; }
-
+  /* BIG BUTTON */
+  .btn-area { display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 18px 0; }
   .big-btn {
-    width: 130px; height: 130px; border-radius: 50%; border: none;
-    cursor: pointer; font-size: 2.8rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.18s;
-    background: var(--grass);
-    box-shadow: 0 7px 0 #04a67d, 0 12px 28px rgba(6,214,160,0.3);
-    position: relative;
+    width: 124px; height: 124px; border-radius: 50%; border: none; cursor: pointer;
+    font-size: 2.6rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; position: relative;
+    background: var(--grass); box-shadow: 0 8px 0 #04a67d, 0 12px 28px rgba(6,214,160,0.3);
   }
-  .big-btn:hover { transform: translateY(-4px); box-shadow: 0 11px 0 #04a67d, 0 18px 36px rgba(6,214,160,0.38); }
+  .big-btn:hover { transform: translateY(-4px); box-shadow: 0 12px 0 #04a67d, 0 18px 36px rgba(6,214,160,0.38); }
   .big-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #04a67d; }
-
-  .big-btn.listening {
-    background: var(--berry);
-    box-shadow: 0 7px 0 #c73558, 0 12px 28px rgba(239,71,111,0.3);
-    animation: listenPulse 1.4s ease-in-out infinite;
+  .big-btn.on {
+    background: var(--berry); box-shadow: 0 8px 0 #c03058, 0 12px 28px rgba(239,71,111,0.3);
+    animation: pulse 1.6s ease-in-out infinite;
   }
-  @keyframes listenPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
-
-  .big-btn.listening::before, .big-btn.listening::after {
-    content: ''; position: absolute; border-radius: 50%;
-    border: 3px solid var(--berry);
-    animation: ripple 1.5s ease-out infinite;
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+  .big-btn.on::before, .big-btn.on::after {
+    content:''; position:absolute; border-radius:50%;
+    border: 3px solid var(--berry); animation: ring 1.8s ease-out infinite;
   }
-  .big-btn.listening::after { animation-delay: 0.75s; }
-  @keyframes ripple { 0%{inset:0;opacity:0.7} 100%{inset:-30px;opacity:0} }
+  .big-btn.on::after { animation-delay: 0.9s; }
+  @keyframes ring { 0%{inset:0;opacity:.7} 100%{inset:-36px;opacity:0} }
+  .btn-lbl { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: var(--text); }
 
-  .btn-label { font-family: 'Fredoka One', cursive; font-size: 1.15rem; color: var(--text); }
+  /* STATS */
+  .stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 9px; }
+  .stat { background: white; border-radius: 16px; padding: 12px 6px; text-align: center; box-shadow: 0 3px 12px rgba(0,0,0,0.06); }
+  .s-icon { font-size: 1.3rem; display: block; }
+  .s-val { font-family: 'Fredoka One', cursive; font-size: 1.35rem; color: var(--blue); line-height: 1.2; display: block; }
+  .s-lbl { font-size: 0.68rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
 
-  /* Stats */
-  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 6px; }
-  .stat-card { background: white; border-radius: 16px; padding: 13px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
-  .stat-emoji { font-size: 1.4rem; display: block; }
-  .stat-val { font-family: 'Fredoka One', cursive; font-size: 1.45rem; color: var(--blue); display: block; line-height: 1.2; }
-  .stat-lbl { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
-
-  /* Celebration */
-  .celebration {
-    position: fixed; inset: 0;
-    background: rgba(255,255,255,0.93);
+  /* CELEBRATE */
+  .celebrate {
+    position: fixed; inset: 0; background: rgba(255,255,255,0.94);
     display: none; align-items: center; justify-content: center;
     flex-direction: column; z-index: 100; backdrop-filter: blur(8px);
   }
-  .celebration.show { display: flex; animation: fadeIn 0.4s ease; }
+  .celebrate.show { display: flex; animation: fadeIn 0.4s ease; }
   @keyframes fadeIn { from{opacity:0} to{opacity:1} }
-  .celebration h2 { font-family:'Fredoka One',cursive; font-size:2.8rem; color:var(--blue); text-align:center; margin-bottom:12px; animation:bounceIn 0.6s cubic-bezier(0.34,1.56,0.64,1); }
-  @keyframes bounceIn { from{transform:scale(0)} to{transform:scale(1)} }
-  .confetti-emoji { font-size:3.6rem; display:block; text-align:center; animation:spin 1s linear infinite; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  .celebration button { margin-top:22px; background:var(--grass); color:white; border:none; border-radius:50px; padding:13px 36px; font-family:'Fredoka One',cursive; font-size:1.25rem; cursor:pointer; box-shadow:0 6px 0 #04a67d; }
-
-  /* Loading */
-  .loading-msg { text-align:center; padding:18px; font-weight:700; color:var(--blue); font-family:'Fredoka One',cursive; font-size:1.15rem; display:none; }
-  .loading-msg.visible { display:block; }
-  .spinner { display:inline-block; width:22px; height:22px; border:3px solid #c0d0ff; border-top-color:var(--blue); border-radius:50%; animation:spinLoader 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
-  @keyframes spinLoader { to{transform:rotate(360deg)} }
-
-  /* No-speech browser warning */
-  .browser-warn { background:#fff3cd; border:2px solid #ffc107; border-radius:14px; padding:14px 18px; margin-bottom:14px; font-size:0.88rem; font-weight:700; display:none; }
-  .browser-warn.visible { display:block; }
+  .celebrate h2 { font-family: 'Fredoka One', cursive; font-size: 2.6rem; color: var(--blue); text-align: center; margin: 12px 0 8px; }
+  .celebrate .big-emoji { font-size: 4rem; animation: spin 1.4s linear infinite; display: block; }
+  .celebrate button {
+    margin-top: 20px; background: var(--grass); color: white; border: none;
+    border-radius: 50px; padding: 12px 36px; font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem; cursor: pointer; box-shadow: 0 6px 0 #04a67d;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo"><span class="book-emoji">📖</span> ReadBuddy</div>
-  <p class="tagline">Listen along as you read! We're here to help 🌟</p>
+  <div class="logo"><span>📖</span> ReadBuddy</div>
+  <p class="tagline">Your reading helper! 🌟</p>
 </header>
 
 <div class="app">
 
-  <!-- Browser warning -->
-  <div class="browser-warn" id="browserWarn">
-    ⚠️ Your browser may not support voice listening. For best results, please use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
+  <div class="warn" id="warn">
+    ⚠️ Voice listening needs <strong>Chrome or Edge</strong> browser — please switch!
   </div>
 
-  <!-- Debug toggle -->
-  <button class="debug-toggle" id="debugToggle" onclick="toggleDebug()" style="display:none">🔍 Show Debug Log</button>
-
-  <!-- Debug panel -->
-  <div class="debug-panel" id="debugPanel"></div>
-
-  <!-- Upload zone -->
+  <!-- Upload -->
   <div class="upload-zone" id="uploadZone">
     <input type="file" id="pdfInput" accept=".pdf" />
     <span class="upload-icon">📚</span>
     <h2>Upload Your Book!</h2>
-    <p>Drag & drop a PDF here, or tap to choose one</p>
-    <span class="upload-btn">Choose a Book</span>
+    <p>Tap to pick a PDF book file</p>
+    <span class="upload-cta">Choose a Book</span>
   </div>
 
-  <!-- Loading -->
-  <div class="loading-msg" id="loadingMsg"><span class="spinner"></span> Reading your book...</div>
+  <div class="loading" id="loading"><span class="spin"></span> Reading your book…</div>
 
-  <!-- Book info -->
-  <div class="book-info hidden" id="bookInfo">
-    <div class="book-cover-thumb">📖</div>
-    <div class="book-meta">
-      <div class="book-title" id="bookTitle">—</div>
-      <div class="word-count" id="wordCount">—</div>
+  <!-- Book bar -->
+  <div class="book-bar hidden" id="bookBar">
+    <div class="book-icon">📖</div>
+    <div style="flex:1;min-width:0">
+      <div class="book-name" id="bookName">—</div>
+      <div class="book-count" id="bookCount">—</div>
     </div>
-    <button class="change-book-btn" id="changeBookBtn">Change Book</button>
+    <button class="change-btn" id="changeBtn">Change Book</button>
   </div>
 
-  <!-- Reader section -->
-  <div class="reader-section" id="readerSection">
-
-    <!-- Mic status -->
-    <div class="mic-status">
-      <div class="mic-dot" id="micDot"></div>
-      <span id="micStatusText">Press the button to start reading</span>
-      <span class="last-heard" id="lastHeard"></span>
-    </div>
+  <!-- Reader -->
+  <div class="reader" id="reader">
 
     <!-- Progress -->
-    <div class="progress-wrap">
-      <span class="progress-label">Progress</span>
-      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
-      <span class="progress-pct" id="progressPct">0%</span>
+    <div class="prog-row">
+      <span class="prog-label">📖 Progress</span>
+      <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+      <span class="prog-pct" id="progPct">0%</span>
     </div>
 
-    <!-- Text display -->
-    <div class="text-display" id="textDisplay">
-      <em style="color:#9ca3af;font-style:normal;">Press the big green button and start reading! 🎉</em>
+    <!-- Debug panel -->
+    <div class="debug-wrap">
+      <button class="debug-toggle" id="dbgToggle" onclick="toggleDebug()">
+        🔍 Show what the mic hears (tap to expand)
+      </button>
+      <div class="debug-log" id="dbgLog"></div>
+    </div>
+
+    <!-- Book text -->
+    <div class="book-text" id="bookText">
+      <em style="color:#9ca3af;font-style:normal">Press the green button below and start reading out loud! 🎉</em>
     </div>
 
     <!-- Hint box -->
     <div class="hint-box" id="hintBox">
-      <span class="hint-emoji" id="hintEmoji">🔊</span>
-      <div class="hint-level" id="hintLevel">Hint</div>
-      <div class="hint-text" id="hintText">—</div>
-      <div class="hint-subtext" id="hintSubtext"></div>
-      <button class="speak-btn" onclick="speakHintAgain()">🔊 Say it again!</button>
+      <span class="hint-icon" id="hintIcon">🔊</span>
+      <div class="hint-tag" id="hintTag">Hint</div>
+      <div class="hint-word" id="hintWord">—</div>
+      <div class="hint-sub" id="hintSub"></div>
+      <button class="say-again" onclick="sayAgain()">🔊 Say it again!</button>
     </div>
 
     <!-- Big button -->
-    <div class="listen-area">
-      <button class="big-btn" id="listenBtn" onclick="toggleListening()">🎤</button>
-      <span class="btn-label" id="btnLabel">Start Reading!</span>
+    <div class="btn-area">
+      <button class="big-btn" id="bigBtn" onclick="toggleListen()">🎤</button>
+      <span class="btn-lbl" id="btnLbl">Start Reading!</span>
     </div>
 
     <!-- Stats -->
-    <div class="stats-row">
-      <div class="stat-card"><span class="stat-emoji">✅</span><span class="stat-val" id="statWords">0</span><span class="stat-lbl">Words Read</span></div>
-      <div class="stat-card"><span class="stat-emoji">💡</span><span class="stat-val" id="statHints">0</span><span class="stat-lbl">Hints Given</span></div>
-      <div class="stat-card"><span class="stat-emoji">⭐</span><span class="stat-val" id="statStreak">0</span><span class="stat-lbl">Streak</span></div>
+    <div class="stats">
+      <div class="stat"><span class="s-icon">✅</span><span class="s-val" id="sWords">0</span><span class="s-lbl">Words Read</span></div>
+      <div class="stat"><span class="s-icon">💡</span><span class="s-val" id="sHints">0</span><span class="s-lbl">Hints Given</span></div>
+      <div class="stat"><span class="s-icon">⭐</span><span class="s-val" id="sStreak">0</span><span class="s-lbl">Streak</span></div>
     </div>
 
   </div>
 </div>
 
 <!-- Celebration -->
-<div class="celebration" id="celebration">
-  <span class="confetti-emoji">🎉</span>
-  <h2>Amazing Job!<br>You finished! 🌟</h2>
-  <button onclick="resetApp()">Read Another Book!</button>
+<div class="celebrate" id="celebrate">
+  <span class="big-emoji">🎉</span>
+  <h2>You did it!<br>Amazing reading! 🌟</h2>
+  <button onclick="resetSession()">Read Another Book!</button>
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+let words       = [];
+let idx         = 0;       // current word position
+let listening   = false;
+let recog       = null;
+let hintTimer   = null;
+let hintStep    = 0;       // 0=first sound, 1=syllable, 2=full word, cycles
+let nWords      = 0;
+let nHints      = 0;
+let nStreak     = 0;
+let dbgOpen     = false;
+let voicesReady = false;
 
-// ===== STATE =====
-let words = [];
-let wordsCleaned = []; // lowercased, stripped punctuation version of each word
-let currentWordIndex = 0;
-let isListening = false;
-let recognition = null;
-let hintTimer = null;
-let currentHintLevel = 0;
-let statsWords = 0, statsHints = 0, statsStreak = 0;
-let lastSpokenHint = '';
-let debugMode = false;
+const HINT_PAUSE = 5000;   // 5s silence → first hint
+const HINT_NEXT  = 6000;   // 6s → next hint level
 
-// ===== BROWSER CHECK =====
+// ══════════════════════════════════════
+//  PDF.JS
+// ══════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ══════════════════════════════════════
+//  STARTUP
+// ══════════════════════════════════════
 window.addEventListener('load', () => {
-  const hasSpeech = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
-  if (!hasSpeech) {
-    document.getElementById('browserWarn').classList.add('visible');
-  }
-  // Show debug toggle always (helpful for testing)
-  document.getElementById('debugToggle').style.display = 'inline-block';
-  // Pre-load voices
-  window.speechSynthesis.getVoices();
+  // Load voices — Chrome needs a moment
+  const loadVoices = () => {
+    const v = speechSynthesis.getVoices();
+    if (v.length) { voicesReady = true; }
+  };
+  speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+  setTimeout(loadVoices, 500);
+  setTimeout(loadVoices, 1500);
+
+  // Browser check
+  const ua = navigator.userAgent;
+  const good = (/Chrome/.test(ua) && /Google Inc/.test(navigator.vendor)) || /Edg/.test(ua);
+  if (!good) document.getElementById('warn').classList.add('show');
 });
 
-function toggleDebug() {
-  debugMode = !debugMode;
-  document.getElementById('debugPanel').classList.toggle('visible', debugMode);
-  document.getElementById('debugToggle').textContent = debugMode ? '🔍 Hide Debug Log' : '🔍 Show Debug Log';
-}
+// ══════════════════════════════════════
+//  PDF UPLOAD
+// ══════════════════════════════════════
+const zone = document.getElementById('uploadZone');
+const inp  = document.getElementById('pdfInput');
 
-function debugLog(msg, type='') {
-  if (!debugMode) return;
-  const panel = document.getElementById('debugPanel');
-  const line = document.createElement('div');
-  line.className = 'debug-line ' + type;
-  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-  panel.appendChild(line);
-  panel.scrollTop = panel.scrollHeight;
-  // Keep only last 60 lines
-  while (panel.children.length > 60) panel.removeChild(panel.firstChild);
-}
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('over'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('over'); if (e.dataTransfer.files[0]) go(e.dataTransfer.files[0]); });
+inp.addEventListener('change', e => { if (e.target.files[0]) go(e.target.files[0]); });
 
-// ===== PDF UPLOAD =====
-const uploadZone = document.getElementById('uploadZone');
-const pdfInput = document.getElementById('pdfInput');
+async function go(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please pick a PDF file!'); return; }
 
-uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
-uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
-uploadZone.addEventListener('drop', e => {
-  e.preventDefault(); uploadZone.classList.remove('drag-over');
-  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-});
-pdfInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
-
-async function handleFile(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a PDF file!'); return; }
-
-  document.getElementById('loadingMsg').classList.add('visible');
-  uploadZone.style.display = 'none';
+  document.getElementById('loading').classList.add('show');
+  zone.style.display = 'none';
 
   try {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-    let fullText = '';
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      fullText += content.items.map(item => item.str).join(' ') + ' ';
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    let text = '';
+    for (let p = 1; p <= pdf.numPages; p++) {
+      const pg = await pdf.getPage(p);
+      const ct = await pg.getTextContent();
+      text += ct.items.map(i => i.str).join(' ') + ' ';
     }
-
-    // Split into words, filter blanks
-    words = fullText.replace(/\s+/g, ' ').trim().split(' ').filter(w => w.trim().length > 0);
-    // Pre-clean each word for matching
-    wordsCleaned = words.map(w => cleanWord(w));
-
-    debugLog(`Loaded ${words.length} words from PDF`, 'match');
-
-    document.getElementById('loadingMsg').classList.remove('visible');
-    document.getElementById('bookInfo').classList.remove('hidden');
-    document.getElementById('bookTitle').textContent = file.name.replace(/\.pdf$/i, '');
-    document.getElementById('wordCount').textContent = `${words.length.toLocaleString()} words`;
-    document.getElementById('readerSection').classList.add('visible');
-
-    currentWordIndex = 0;
-    renderText();
-  } catch(err) {
-    document.getElementById('loadingMsg').classList.remove('visible');
-    uploadZone.style.display = '';
-    alert('Sorry, I had trouble reading that PDF. Try a different file!');
-    console.error(err);
-  }
-}
-
-document.getElementById('changeBookBtn').addEventListener('click', () => {
-  stopListening();
-  uploadZone.style.display = '';
-  document.getElementById('bookInfo').classList.add('hidden');
-  document.getElementById('readerSection').classList.remove('visible');
-  pdfInput.value = '';
-  words = []; wordsCleaned = [];
-});
-
-// ===== WORD CLEANING =====
-function cleanWord(w) {
-  return w.toLowerCase().replace(/[^a-z0-9']/g, '');
-}
-
-// ===== FUZZY MATCHING ENGINE =====
-// Levenshtein distance — how many edits to get from a to b
-function levenshtein(a, b) {
-  if (a === b) return 0;
-  if (a.length === 0) return b.length;
-  if (b.length === 0) return a.length;
-
-  const matrix = [];
-  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-  for (let i = 1; i <= b.length; i++) {
-    for (let j = 1; j <= a.length; j++) {
-      if (b[i-1] === a[j-1]) {
-        matrix[i][j] = matrix[i-1][j-1];
-      } else {
-        matrix[i][j] = Math.min(
-          matrix[i-1][j-1] + 1,  // substitute
-          matrix[i][j-1] + 1,    // insert
-          matrix[i-1][j] + 1     // delete
-        );
-      }
-    }
-  }
-  return matrix[b.length][a.length];
-}
-
-// Does spoken word match expected word?
-function isMatch(spoken, expected) {
-  if (!spoken || !expected) return false;
-
-  // Exact match
-  if (spoken === expected) return true;
-
-  // Very short words — require exact or 1-char difference only
-  if (expected.length <= 2) return spoken === expected;
-
-  // Starts-with match for longer words (child may trail off)
-  if (expected.length >= 5 && spoken.length >= 4) {
-    if (expected.startsWith(spoken.slice(0, 4))) return true;
-    if (spoken.startsWith(expected.slice(0, 4))) return true;
-  }
-
-  // Levenshtein tolerance scaled to word length
-  const dist = levenshtein(spoken, expected);
-  const maxLen = Math.max(spoken.length, expected.length);
-
-  // Allow 1 error for words 4-6 chars, 2 errors for 7+ chars
-  if (expected.length <= 3) return dist === 0;
-  if (expected.length <= 6) return dist <= 1;
-  return dist <= 2;
-}
-
-// Look-ahead: try to match spoken word against next N expected words
-// This handles cases where recognition skips a word or catches up
-function findBestMatchAhead(spokenWord, startIdx, lookAhead = 4) {
-  for (let i = startIdx; i < Math.min(startIdx + lookAhead, wordsCleaned.length); i++) {
-    if (isMatch(spokenWord, wordsCleaned[i])) return i;
-  }
-  return -1;
-}
-
-// ===== SPEECH RECOGNITION =====
-function toggleListening() {
-  isListening ? stopListening() : startListening();
-}
-
-function startListening() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) {
-    alert('Voice listening is not supported in this browser. Please use Chrome or Edge!');
+    words = text.replace(/\s+/g, ' ').trim().split(' ').filter(w => w.length > 0);
+  } catch(e) {
+    alert('Could not read PDF. Please try another file.');
+    zone.style.display = ''; document.getElementById('loading').classList.remove('show');
     return;
   }
 
-  recognition = new SpeechRecognition();
-  recognition.continuous = true;
-  recognition.interimResults = true;
-  recognition.lang = 'en-US';
-  recognition.maxAlternatives = 3; // Get multiple interpretations!
+  document.getElementById('loading').classList.remove('show');
+  document.getElementById('bookBar').classList.remove('hidden');
+  document.getElementById('bookName').textContent = file.name.replace(/\.pdf$/i,'');
+  document.getElementById('bookCount').textContent = `${words.length.toLocaleString()} words`;
+  document.getElementById('reader').classList.add('show');
 
-  recognition.onstart = () => {
-    debugLog('Microphone started', 'match');
-    setMicStatus('active', 'Listening... start reading!');
-  };
-
-  recognition.onresult = handleResult;
-
-  recognition.onerror = (e) => {
-    debugLog(`Speech error: ${e.error}`, 'hint');
-    if (e.error === 'not-allowed') {
-      alert('Microphone access was denied. Please allow microphone access and try again.');
-      stopListening();
-    } else if (e.error === 'network') {
-      debugLog('Network error — speech recognition needs internet', 'hint');
-    }
-    // For no-speech errors, just keep going
-  };
-
-  recognition.onend = () => {
-    // Auto-restart if we're still supposed to be listening
-    if (isListening) {
-      try { recognition.start(); } catch(e) { debugLog('Restart failed: ' + e.message, 'hint'); }
-    }
-  };
-
-  recognition.start();
-  isListening = true;
-
-  document.getElementById('listenBtn').classList.add('listening');
-  document.getElementById('listenBtn').textContent = '⏹️';
-  document.getElementById('btnLabel').textContent = "I'm Listening!";
-
-  startHintTimer();
+  idx = 0; hintStep = 0;
+  renderText();
 }
 
-function stopListening() {
-  isListening = false;
-  if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
+document.getElementById('changeBtn').addEventListener('click', () => {
+  stopListen();
+  zone.style.display = '';
+  document.getElementById('bookBar').classList.add('hidden');
+  document.getElementById('reader').classList.remove('show');
+  inp.value = '';
+  words = []; idx = 0;
+});
+
+// ══════════════════════════════════════
+//  RENDER TEXT
+// ══════════════════════════════════════
+function renderText() {
+  const el    = document.getElementById('bookText');
+  const start = Math.max(0, idx - 8);
+  const end   = Math.min(words.length, idx + 40);
+  let html = start > 0 ? '<span style="color:#cbd5e1;font-size:.8em">… </span>' : '';
+
+  for (let i = start; i < end; i++) {
+    const cls = i < idx ? 'done' : i === idx ? 'now' : '';
+    html += `<span class="w ${cls}">${esc(words[i])}</span> `;
+  }
+  if (end < words.length) html += '<span style="color:#cbd5e1;font-size:.8em"> …</span>';
+  el.innerHTML = html;
+
+  const cur = el.querySelector('.w.now');
+  if (cur) cur.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  updateProg();
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function updateProg() {
+  const pct = words.length ? Math.round(idx / words.length * 100) : 0;
+  document.getElementById('progFill').style.width = pct + '%';
+  document.getElementById('progPct').textContent  = pct + '%';
+}
+
+// ══════════════════════════════════════
+//  SPEECH RECOGNITION
+// ══════════════════════════════════════
+function toggleListen() { listening ? stopListen() : startListen(); }
+
+function startListen() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Please use Chrome or Edge for voice support! 🎙️'); return; }
+
+  recog = new SR();
+  recog.continuous     = true;
+  recog.interimResults = true;   // get words as they're spoken, not just at end of sentence
+  recog.lang           = 'en-US';
+  recog.maxAlternatives = 8;     // ask browser for 8 possible interpretations
+
+  recog.onresult = onResult;
+  recog.onerror  = onError;
+  recog.onend    = () => { if (listening) { try { recog.start(); } catch(e){} } };
+
+  try { recog.start(); } catch(e) { log('Could not start mic: ' + e.message, 'de'); return; }
+
+  listening = true;
+  document.getElementById('bigBtn').classList.add('on');
+  document.getElementById('bigBtn').textContent = '⏹️';
+  document.getElementById('btnLbl').textContent = "I'm Listening!";
+  armHint();
+}
+
+function stopListen() {
+  listening = false;
+  if (recog) { try { recog.stop(); } catch(e){} recog = null; }
   clearHintTimer();
-  setMicStatus('', 'Press the button to start reading');
-  document.getElementById('listenBtn').classList.remove('listening');
-  document.getElementById('listenBtn').textContent = '🎤';
-  document.getElementById('btnLabel').textContent = 'Start Reading!';
+  document.getElementById('bigBtn').classList.remove('on');
+  document.getElementById('bigBtn').textContent = '🎤';
+  document.getElementById('btnLbl').textContent = 'Start Reading!';
 }
 
-function setMicStatus(state, text) {
-  const dot = document.getElementById('micDot');
-  dot.className = 'mic-dot' + (state ? ' ' + state : '');
-  document.getElementById('micStatusText').textContent = text;
+function onError(e) {
+  // 'no-speech' is totally normal (child paused) — don't log it as an error
+  if (e.error === 'no-speech' || e.error === 'aborted') return;
+  log('Mic error: ' + e.error, 'de');
 }
 
-// ===== PROCESS SPEECH RESULTS =====
-let processingBuffer = [];
-let lastFinalIndex = 0;
-
-function handleResult(event) {
-  // Collect all alternatives from all results
-  let allSpoken = new Set();
-
-  for (let i = event.resultIndex; i < event.results.length; i++) {
-    const result = event.results[i];
-
-    // Gather all alternatives
-    for (let a = 0; a < result.length; a++) {
-      const transcript = result[a].transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, '').trim();
-      const spoken = transcript.split(/\s+/).filter(w => w.length > 0);
-      spoken.forEach(w => allSpoken.add(w));
-    }
-
-    if (result.isFinal) {
-      // Process final results more carefully
-      const transcript = result[0].transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, '').trim();
-      const spokenWords = transcript.split(/\s+/).filter(w => w.length > 0);
-
-      debugLog(`Heard (final): "${transcript}"`, 'heard');
-      document.getElementById('lastHeard').textContent = `Heard: "${transcript}"`;
-      setMicStatus('heard', 'Heard something!');
-      setTimeout(() => setMicStatus('active', 'Listening...'), 800);
-
-      processSpokenWords(spokenWords);
-    } else {
-      // For interim results, just try to match individual words
-      const transcript = result[0].transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, '').trim();
-      debugLog(`Heard (interim): "${transcript}"`, 'heard');
-      document.getElementById('lastHeard').textContent = `"${transcript}"`;
-      setMicStatus('active', 'Hearing...');
+// ══════════════════════════════════════
+//  MATCHING ENGINE  (v3 — very forgiving)
+// ══════════════════════════════════════
+function onResult(event) {
+  // Step 1: collect every word from every alternative, final AND interim
+  const pool = new Set();
+  for (let r = 0; r < event.results.length; r++) {
+    for (let a = 0; a < event.results[r].length; a++) {
+      event.results[r][a].transcript
+        .toLowerCase()
+        .replace(/[^a-z0-9'\s\-]/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean)
+        .forEach(w => pool.add(w));
     }
   }
-}
+  if (!pool.size) return;
 
-function processSpokenWords(spokenWords) {
-  let anyMatch = false;
+  log('Heard: ' + [...pool].join(' · '), 'dh');
 
-  for (const spokenWord of spokenWords) {
-    if (currentWordIndex >= wordsCleaned.length) break;
+  // Step 2: check current word AND next 4 words (look-ahead)
+  // This handles the common case where recognition hears a word a beat early
+  const LOOK = 5;
+  let advance = -1;
 
-    // Try to match this spoken word against next few expected words
-    const matchIdx = findBestMatchAhead(spokenWord, currentWordIndex, 5);
-
-    if (matchIdx !== -1) {
-      // If we skipped words, advance past them (child may have read them too fast)
-      if (matchIdx > currentWordIndex) {
-        debugLog(`Skipped ${matchIdx - currentWordIndex} word(s) to match "${spokenWord}" → "${wordsCleaned[matchIdx]}"`, 'match');
-      } else {
-        debugLog(`Matched: "${spokenWord}" → "${wordsCleaned[matchIdx]}"`, 'match');
+  outer:
+  for (let off = 0; off < LOOK && idx + off < words.length; off++) {
+    const target = clean(words[idx + off]);
+    for (const spoken of pool) {
+      if (matches(spoken, target)) {
+        advance = off;
+        log(`✓ "${spoken}" → "${target}" (offset +${off})`, 'dm');
+        break outer;
       }
-
-      // Advance to the matched word + 1
-      const wordsAdvanced = matchIdx - currentWordIndex + 1;
-      for (let i = 0; i < wordsAdvanced; i++) {
-        currentWordIndex++;
-        statsWords++;
-        statsStreak++;
-      }
-
-      updateStats();
-      currentHintLevel = 0;
-      anyMatch = true;
-
-      if (currentWordIndex >= words.length) {
-        stopListening();
-        showCelebration();
-        return;
-      }
-
-      renderText();
-    } else {
-      debugLog(`No match for: "${spokenWord}" (expected: "${wordsCleaned[currentWordIndex]}")`, 'hint');
     }
   }
 
-  if (anyMatch) {
-    clearHintTimer();
-    hideHint();
-    startHintTimer();
+  if (advance >= 0) {
+    // Advance past any skipped words + the matched word
+    for (let i = 0; i <= advance; i++) advanceOne();
   }
 }
 
-// ===== HINT SYSTEM =====
-function startHintTimer() {
+// Remove all non-alpha characters, lowercase
+function clean(w) {
+  return w.toLowerCase().replace(/[^a-z]/g, '');
+}
+
+// ── THE MATCHER ──────────────────────────────
+// Returns true if `heard` is a reasonable match for `expected`
+// Tuned to be VERY forgiving for children's voices + imperfect STT
+function matches(heard, expected) {
+  if (!heard || !expected) return false;
+
+  // Skip super short expected words unless exact (avoids noise matching "a", "I")
+  if (expected.length <= 1) return heard === expected;
+
+  // 1. Exact
+  if (heard === expected) return true;
+
+  // 2. One is a prefix of the other
+  //    e.g. child says "ele" for "elephant", or STT drops word endings
+  const minLen = Math.min(heard.length, expected.length);
+  if (minLen >= 3) {
+    if (expected.startsWith(heard.slice(0, minLen))) return true;
+    if (heard.startsWith(expected.slice(0, minLen)))  return true;
+  }
+
+  // 3. Edit distance (Levenshtein)
+  //    Very forgiving thresholds:
+  //      ≤4 letters  → 1 edit allowed
+  //      ≤7 letters  → 2 edits
+  //      8+ letters  → 3 edits
+  const dist = lev(heard, expected);
+  const tol  = expected.length <= 4 ? 1 : expected.length <= 7 ? 2 : 3;
+  if (dist <= tol) return true;
+
+  // 4. Phonetic (Soundex) — catches "nite"/"night", "kat"/"cat" etc.
+  if (expected.length >= 4 && soundex(heard) === soundex(expected)) return true;
+
+  // 5. Double Metaphone-lite: strip vowels and compare consonant skeletons
+  //    Handles cases where vowels are heard differently
+  if (expected.length >= 5) {
+    const hc = consonants(heard);
+    const ec = consonants(expected);
+    if (hc.length >= 2 && ec.length >= 2) {
+      if (hc === ec) return true;
+      if (hc.startsWith(ec.slice(0,3)) || ec.startsWith(hc.slice(0,3))) return true;
+    }
+  }
+
+  return false;
+}
+
+// Strip vowels, keep consonant skeleton
+function consonants(w) {
+  return w.replace(/[aeiou]/g, '');
+}
+
+// Levenshtein (memory-optimized, two-row)
+function lev(a, b) {
+  if (Math.abs(a.length - b.length) > 4) return 99; // early exit
+  let prev = Array.from({length: b.length+1}, (_,i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    const curr = [i];
+    for (let j = 1; j <= b.length; j++) {
+      curr[j] = a[i-1] === b[j-1]
+        ? prev[j-1]
+        : 1 + Math.min(prev[j], curr[j-1], prev[j-1]);
+    }
+    prev = curr;
+  }
+  return prev[b.length];
+}
+
+// Simplified Soundex
+function soundex(s) {
+  const map = {b:1,f:1,p:1,v:1,c:2,g:2,j:2,k:2,q:2,s:2,x:2,z:2,d:3,t:3,l:4,m:5,n:5,r:6};
+  let r = s[0]?.toUpperCase() || '', prev = map[s[0]?.toLowerCase()] || 0;
+  for (let i = 1; i < s.length && r.length < 4; i++) {
+    const c = map[s[i].toLowerCase()];
+    if (c && c !== prev) r += c;
+    prev = c || 0;
+  }
+  return r.padEnd(4,'0');
+}
+
+function advanceOne() {
+  nWords++; nStreak++;
+  idx++;
+  hintStep = 0;
+  hideHint();
+  updateStats();
   clearHintTimer();
-  // 5 seconds of silence before first hint
-  hintTimer = setTimeout(giveHint, 5000);
+
+  if (idx >= words.length) {
+    stopListen();
+    celebrate();
+    return;
+  }
+  renderText();
+  armHint();
+}
+
+// ══════════════════════════════════════
+//  HINT SYSTEM — fully verbal
+// ══════════════════════════════════════
+function armHint() {
+  clearHintTimer();
+  hintTimer = setTimeout(giveHint, HINT_PAUSE);
 }
 
 function clearHintTimer() {
@@ -797,154 +632,146 @@ function clearHintTimer() {
 }
 
 function giveHint() {
-  if (!isListening || currentWordIndex >= words.length) return;
+  if (!listening || idx >= words.length) return;
 
-  const word = words[currentWordIndex];
-  const clean = word.replace(/[^a-zA-Z']/g, '');
+  nHints++; nStreak = 0; updateStats();
 
-  statsHints++;
-  statsStreak = 0;
-  updateStats();
+  const raw  = words[idx];
+  const word = clean(raw);
 
-  debugLog(`Hint level ${currentHintLevel} for "${clean}"`, 'hint');
+  if (hintStep === 0) {
+    // ── Hint 1: speak the first sound only ──
+    const sound = firstSound(word);
+    const msg   = `Hmm, let's try that word together. It starts with the sound… ${sound}… ${sound}… Can you say it?`;
+    showHint('🔊', 'Sound Hint', sound + '…', `First sound: "${sound}"`, msg);
 
-  if (currentHintLevel === 0) {
-    const sound = getFirstSound(clean);
-    showHint('🔊', 'First Sound', sound + '...', `Listen to the first sound of "${clean}"`, sound);
-  } else if (currentHintLevel === 1) {
-    const syllable = getFirstSyllable(clean);
-    showHint('💬', 'First Part', syllable + '-', `Try saying: "${syllable}"`, syllable);
+  } else if (hintStep === 1) {
+    // ── Hint 2: speak the first syllable ──
+    const syl = firstSyllable(word);
+    const msg  = `Good try! The beginning of the word sounds like… ${syl}… Can you finish it? ${syl}…`;
+    showHint('💬', 'Syllable Hint', syl + '-', `First part: "${syl}"`, msg);
+
   } else {
-    showHint('🌟', 'The Word Is...', clean, 'Try reading the whole word!', clean);
-    currentHintLevel = -1; // will become 0 after increment
+    // ── Hint 3: speak the full word ──
+    const msg = `That's a tricky one! The word is… ${raw}… ${raw}. Can you say it? ${raw}!`;
+    showHint('🌟', 'The Word Is…', raw, 'Try saying the whole word!', msg);
+    hintStep = -1; // will wrap to 0
   }
 
-  currentHintLevel++;
-  hintTimer = setTimeout(giveHint, 6000);
+  hintStep++;
+  hintTimer = setTimeout(giveHint, HINT_NEXT);
 }
 
-function showHint(emoji, level, text, subtext, toSpeak) {
-  document.getElementById('hintEmoji').textContent = emoji;
-  document.getElementById('hintLevel').textContent = level;
-  document.getElementById('hintText').textContent = text;
-  document.getElementById('hintSubtext').textContent = subtext;
-  document.getElementById('hintBox').classList.add('visible');
+function showHint(icon, tag, wordDisplay, sub, toSpeak) {
+  document.getElementById('hintIcon').textContent = icon;
+  document.getElementById('hintTag').textContent  = tag;
+  document.getElementById('hintWord').textContent = wordDisplay;
+  document.getElementById('hintSub').textContent  = sub;
 
-  // Re-trigger animation
-  const emojiEl = document.getElementById('hintEmoji');
-  emojiEl.style.animation = 'none';
-  requestAnimationFrame(() => emojiEl.style.animation = '');
+  const box = document.getElementById('hintBox');
+  box.classList.remove('show');
+  void box.offsetWidth;           // force re-animation
+  box.classList.add('show');
 
-  lastSpokenHint = toSpeak;
-  speakText(toSpeak);
+  speak(toSpeak);                 // ← ALWAYS spoken aloud
 }
 
-function hideHint() {
-  document.getElementById('hintBox').classList.remove('visible');
+function hideHint() { document.getElementById('hintBox').classList.remove('show'); }
+
+function sayAgain() {
+  // Re-read the current hint level's message
+  const word = clean(words[idx] || '');
+  const step = ((hintStep - 1) + 3) % 3; // what was just shown
+  if (step === 0) speak(`It starts with the sound… ${firstSound(word)}… ${firstSound(word)}`);
+  else if (step === 1) speak(`The beginning sounds like… ${firstSyllable(word)}… ${firstSyllable(word)}`);
+  else speak(`The word is… ${words[idx]}… ${words[idx]}`);
 }
 
-function speakHintAgain() { speakText(lastSpokenHint); }
-
-function speakText(text) {
+// ══════════════════════════════════════
+//  TEXT-TO-SPEECH  (child-friendly voice)
+// ══════════════════════════════════════
+function speak(text) {
   const synth = window.speechSynthesis;
-  if (!synth) return;
   synth.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.72;
-  utt.pitch = 1.1;
-  utt.volume = 1;
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.rate   = 0.82;    // slightly slow — easier for kids to follow
+  u.pitch  = 1.15;    // a little higher — friendlier tone
+  u.volume = 1.0;
+
+  // Pick best available voice (friendly, clear)
   const voices = synth.getVoices();
-  const preferred = voices.find(v =>
-    v.name.includes('Samantha') || v.name.includes('Karen') ||
-    v.name.includes('Moira') || v.name.includes('Fiona') ||
-    (v.lang === 'en-US' && v.localService)
-  );
-  if (preferred) utt.voice = preferred;
-  synth.speak(utt);
+  const preferred = [
+    'Samantha','Karen','Victoria','Moira',   // macOS
+    'Microsoft Zira','Microsoft Aria',        // Windows
+    'Google US English','Google UK English Female'
+  ];
+  const pick = preferred.reduce((found, name) =>
+    found || voices.find(v => v.name.includes(name)), null);
+  if (pick) u.voice = pick;
+
+  synth.speak(u);
 }
 
-// ===== PHONICS HELPERS =====
-function getFirstSound(word) {
-  if (!word) return '';
-  const w = word.toLowerCase();
-  const digraphs = ['ch','sh','th','wh','ph','qu','gh','ck','sc','sk','sl','sm','sn','sp','st','sw','bl','br','cl','cr','dr','fl','fr','gl','gr','pl','pr','tr','wr'];
-  for (const d of digraphs) {
-    if (w.startsWith(d)) return d;
-  }
-  return w[0];
+// ══════════════════════════════════════
+//  PHONICS HELPERS
+// ══════════════════════════════════════
+function firstSound(w) {
+  const digraphs = ['ch','sh','th','wh','ph','qu','tr','gr','br','fr','cr','dr','pr','bl','cl','fl','gl','pl','sl','sp','st','sw','sn','sm','sk'];
+  for (const d of digraphs) if (w.startsWith(d)) return d;
+  return w[0] || '';
 }
 
-function getFirstSyllable(word) {
-  if (!word || word.length <= 2) return word;
-  const w = word.toLowerCase();
-  const vowels = 'aeiou';
-
-  let firstVowelIdx = -1;
-  for (let i = 0; i < w.length; i++) {
-    if (vowels.includes(w[i])) { firstVowelIdx = i; break; }
-  }
-
-  if (firstVowelIdx === -1) return w.slice(0, Math.min(3, w.length));
-  if (firstVowelIdx === 0) {
-    // Starts with vowel — include next consonant if short
-    return w.slice(0, Math.min(3, w.length));
-  }
-
-  // Include consonant(s) + vowel + next consonant (CVC pattern)
-  if (firstVowelIdx + 1 < w.length && !vowels.includes(w[firstVowelIdx + 1])) {
-    return w.slice(0, firstVowelIdx + 2);
-  }
-  return w.slice(0, firstVowelIdx + 1);
+function firstSyllable(w) {
+  if (!w || w.length <= 3) return w;
+  const V = 'aeiou';
+  let vi = -1;
+  for (let i = 0; i < w.length; i++) { if (V.includes(w[i])) { vi = i; break; } }
+  if (vi < 0)  return w.slice(0, Math.min(3, w.length));
+  if (vi === 0) return w.slice(0, Math.min(3, w.length));
+  if (vi + 1 < w.length && !V.includes(w[vi+1])) return w.slice(0, vi+2);
+  return w.slice(0, vi+1);
 }
 
-// ===== RENDER TEXT =====
-function renderText() {
-  const display = document.getElementById('textDisplay');
-  const windowStart = Math.max(0, currentWordIndex - 6);
-  const windowEnd = Math.min(words.length, currentWordIndex + 35);
-
-  let html = windowStart > 0 ? '<span style="color:#d1d5db;font-size:0.8em">... </span>' : '';
-
-  for (let i = windowStart; i < windowEnd; i++) {
-    const cls = i < currentWordIndex ? 'read' : i === currentWordIndex ? 'current' : '';
-    html += `<span class="word ${cls}">${words[i]}</span> `;
-  }
-
-  if (windowEnd < words.length) html += '<span style="color:#d1d5db;font-size:0.8em">...</span>';
-  display.innerHTML = html;
-
-  const currentEl = display.querySelector('.word.current');
-  if (currentEl) currentEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
-  updateProgress();
+// ══════════════════════════════════════
+//  DEBUG PANEL
+// ══════════════════════════════════════
+function toggleDebug() {
+  dbgOpen = !dbgOpen;
+  document.getElementById('dbgLog').classList.toggle('show', dbgOpen);
+  document.getElementById('dbgToggle').textContent = dbgOpen
+    ? '🔍 Hide mic log (tap to close)'
+    : '🔍 Show what the mic hears (tap to expand)';
 }
 
-function updateProgress() {
-  const pct = words.length > 0 ? Math.round((currentWordIndex / words.length) * 100) : 0;
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressPct').textContent = pct + '%';
+function log(msg, cls = 'di') {
+  const panel = document.getElementById('dbgLog');
+  const p = document.createElement('p');
+  p.className = cls; p.textContent = new Date().toLocaleTimeString('en',{hour12:false}) + ' ' + msg;
+  panel.appendChild(p);
+  panel.scrollTop = panel.scrollHeight;
+  while (panel.children.length > 50) panel.removeChild(panel.firstChild);
 }
 
+// ══════════════════════════════════════
+//  STATS & CELEBRATE
+// ══════════════════════════════════════
 function updateStats() {
-  document.getElementById('statWords').textContent = statsWords;
-  document.getElementById('statHints').textContent = statsHints;
-  document.getElementById('statStreak').textContent = statsStreak;
+  document.getElementById('sWords').textContent  = nWords;
+  document.getElementById('sHints').textContent  = nHints;
+  document.getElementById('sStreak').textContent = nStreak;
 }
 
-// ===== CELEBRATION =====
-function showCelebration() {
-  document.getElementById('celebration').classList.add('show');
-  speakText('Wow! You did it! That was amazing reading!');
+function celebrate() {
+  document.getElementById('celebrate').classList.add('show');
+  speak('Wow! You finished the whole book! That was amazing reading! You should be so proud!');
 }
 
-function resetApp() {
-  document.getElementById('celebration').classList.remove('show');
-  currentWordIndex = 0;
-  currentHintLevel = 0;
-  statsWords = 0; statsHints = 0; statsStreak = 0;
-  updateStats();
-  hideHint();
-  if (words.length > 0) renderText();
+function resetSession() {
+  document.getElementById('celebrate').classList.remove('show');
+  idx = 0; hintStep = 0; nWords = 0; nHints = 0; nStreak = 0;
+  updateStats(); hideHint();
+  if (words.length) renderText();
 }
 </script>
 </body>

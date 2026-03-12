@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReadBuddy 📚</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap');
+
+  :root {
+    --sky: #e0f4ff;
+    --sun: #FFD166;
+    --grass: #06D6A0;
+    --berry: #EF476F;
+    --blue: #4361EE;
+    --lavender: #9B5DE5;
+    --text: #1a1a2e;
+    --muted: #6b7280;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--sky);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: linear-gradient(180deg, #c9e8ff 0%, #e8f5ff 40%, #d4f0e8 100%);
+    z-index: -1;
+  }
+
+  header {
+    text-align: center;
+    padding: 28px 20px 12px;
+  }
+
+  .logo {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 6vw, 3rem);
+    color: var(--blue);
+    text-shadow: 3px 3px 0px rgba(67,97,238,0.18);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo .book-emoji {
+    display: inline-block;
+    animation: bookBounce 2.5s ease-in-out infinite;
+  }
+
+  @keyframes bookBounce {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg) scale(1.1); }
+  }
+
+  .tagline { font-size: 0.95rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
+
+  .app { max-width: 760px; margin: 0 auto; padding: 0 18px 60px; }
+
+  /* ===== DEBUG PANEL ===== */
+  .debug-panel {
+    background: #1e1e2e;
+    color: #a6e3a1;
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-family: monospace;
+    font-size: 0.78rem;
+    margin-bottom: 14px;
+    display: none;
+    max-height: 120px;
+    overflow-y: auto;
+  }
+  .debug-panel.visible { display: block; }
+  .debug-panel .debug-line { margin: 2px 0; }
+  .debug-panel .debug-line.match { color: #94e2d5; }
+  .debug-panel .debug-line.hint { color: #fab387; }
+  .debug-panel .debug-line.heard { color: #cdd6f4; }
+
+  .debug-toggle {
+    background: #1e1e2e;
+    color: #cdd6f4;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    margin-bottom: 10px;
+    font-family: monospace;
+  }
+
+  /* ===== UPLOAD ===== */
+  .upload-zone {
+    background: white;
+    border-radius: 28px;
+    padding: 38px 28px;
+    text-align: center;
+    border: 3px dashed #b5d5f5;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    box-shadow: 0 8px 32px rgba(67,97,238,0.08);
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--blue);
+    background: #f0f5ff;
+    transform: translateY(-3px);
+    box-shadow: 0 14px 40px rgba(67,97,238,0.14);
+  }
+
+  .upload-zone .upload-icon {
+    font-size: 3.6rem;
+    display: block;
+    margin-bottom: 14px;
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+
+  .upload-zone h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+
+  .upload-zone p { color: var(--muted); font-size: 0.92rem; font-weight: 600; }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .upload-btn {
+    display: inline-block;
+    margin-top: 18px;
+    background: var(--blue);
+    color: white;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.05rem;
+    padding: 11px 30px;
+    border-radius: 50px;
+    pointer-events: none;
+    box-shadow: 0 4px 14px rgba(67,97,238,0.28);
+  }
+
+  /* ===== BOOK INFO ===== */
+  .book-info {
+    background: white;
+    border-radius: 20px;
+    padding: 14px 20px;
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07);
+  }
+  .book-info.hidden { display: none; }
+
+  .book-cover-thumb {
+    width: 42px; height: 54px;
+    background: linear-gradient(135deg, var(--lavender), var(--blue));
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; flex-shrink: 0;
+    box-shadow: 3px 3px 0 rgba(0,0,0,0.14);
+  }
+
+  .book-meta { flex: 1; }
+  .book-title { font-weight: 800; font-size: 0.92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
+  .word-count { font-size: 0.8rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+  .change-book-btn {
+    background: #f1f5ff; color: var(--blue);
+    border: none; border-radius: 12px;
+    padding: 7px 13px; font-family: 'Nunito', sans-serif;
+    font-weight: 700; font-size: 0.82rem; cursor: pointer;
+  }
+  .change-book-btn:hover { background: #dde6ff; }
+
+  /* ===== READER ===== */
+  .reader-section { margin-top: 18px; display: none; }
+  .reader-section.visible { display: block; }
+
+  /* Mic status bar */
+  .mic-status {
+    background: white;
+    border-radius: 14px;
+    padding: 10px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+  }
+  .mic-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #d1d5db;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .mic-dot.active { background: var(--berry); animation: blink 1s ease-in-out infinite; }
+  .mic-dot.heard { background: var(--grass); animation: none; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .last-heard {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    background: white; border-radius: 14px;
+    padding: 12px 18px; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.06);
+  }
+  .progress-label { font-weight: 800; font-size: 0.82rem; color: var(--muted); white-space: nowrap; }
+  .progress-bar-bg { flex: 1; height: 13px; background: #e8f0fe; border-radius: 99px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--grass), var(--blue)); border-radius: 99px; transition: width 0.5s ease; width: 0%; }
+  .progress-pct { font-family: 'Fredoka One', cursive; font-size: 0.95rem; color: var(--blue); min-width: 38px; text-align: right; }
+
+  /* Text display */
+  .text-display {
+    background: white; border-radius: 22px;
+    padding: 24px; min-height: 130px;
+    box-shadow: 0 6px 26px rgba(0,0,0,0.07);
+    margin-bottom: 14px;
+    line-height: 2;
+    font-size: clamp(1.05rem, 3vw, 1.28rem);
+    font-weight: 600; color: #374151;
+  }
+
+  .word { display: inline-block; margin: 1px 3px; padding: 2px 4px; border-radius: 6px; transition: all 0.18s; }
+  .word.read { color: #c4c9d4; }
+  .word.current {
+    background: var(--sun); color: var(--text);
+    transform: scale(1.1);
+    box-shadow: 0 2px 12px rgba(255,209,102,0.45);
+    animation: pulseWord 1.2s ease-in-out infinite;
+  }
+  @keyframes pulseWord {
+    0%,100% { box-shadow: 0 2px 12px rgba(255,209,102,0.45); }
+    50% { box-shadow: 0 2px 22px rgba(255,209,102,0.75); }
+  }
+
+  /* Hint box */
+  .hint-box {
+    background: linear-gradient(135deg, #fff8e7, #fffbf0);
+    border: 3px solid var(--sun);
+    border-radius: 22px; padding: 18px 22px;
+    text-align: center; display: none;
+    animation: hintPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    box-shadow: 0 6px 22px rgba(255,209,102,0.22);
+    margin-bottom: 14px;
+  }
+  .hint-box.visible { display: block; }
+
+  @keyframes hintPop {
+    from { transform: scale(0.8) translateY(10px); opacity: 0; }
+    to { transform: scale(1) translateY(0); opacity: 1; }
+  }
+
+  .hint-emoji { font-size: 1.8rem; display: block; margin-bottom: 6px; animation: wiggle 0.5s ease; }
+  @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg)} 75%{transform:rotate(10deg)} }
+  .hint-level { font-size: 0.73rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #d4860a; margin-bottom: 3px; }
+  .hint-text { font-family: 'Fredoka One', cursive; font-size: 1.9rem; color: var(--text); letter-spacing: 2px; }
+  .hint-subtext { font-size: 0.85rem; color: #b07a20; font-weight: 600; margin-top: 5px; }
+
+  .speak-btn {
+    margin-top: 10px;
+    background: var(--sun); border: none; border-radius: 50px;
+    padding: 7px 20px; font-family: 'Fredoka One', cursive;
+    font-size: 0.95rem; cursor: pointer; color: var(--text);
+    box-shadow: 0 3px 0 #d4940a; transition: all 0.18s;
+  }
+  .speak-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 0 #d4940a; }
+
+  /* Big button */
+  .listen-area { display: flex; flex-direction: column; align-items: center; gap: 14px; margin: 20px 0; }
+
+  .big-btn {
+    width: 130px; height: 130px; border-radius: 50%; border: none;
+    cursor: pointer; font-size: 2.8rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.18s;
+    background: var(--grass);
+    box-shadow: 0 7px 0 #04a67d, 0 12px 28px rgba(6,214,160,0.3);
+    position: relative;
+  }
+  .big-btn:hover { transform: translateY(-4px); box-shadow: 0 11px 0 #04a67d, 0 18px 36px rgba(6,214,160,0.38); }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 4px 0 #04a67d; }
+
+  .big-btn.listening {
+    background: var(--berry);
+    box-shadow: 0 7px 0 #c73558, 0 12px 28px rgba(239,71,111,0.3);
+    animation: listenPulse 1.4s ease-in-out infinite;
+  }
+  @keyframes listenPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+
+  .big-btn.listening::before, .big-btn.listening::after {
+    content: ''; position: absolute; border-radius: 50%;
+    border: 3px solid var(--berry);
+    animation: ripple 1.5s ease-out infinite;
+  }
+  .big-btn.listening::after { animation-delay: 0.75s; }
+  @keyframes ripple { 0%{inset:0;opacity:0.7} 100%{inset:-30px;opacity:0} }
+
+  .btn-label { font-family: 'Fredoka One', cursive; font-size: 1.15rem; color: var(--text); }
+
+  /* Stats */
+  .stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-top: 6px; }
+  .stat-card { background: white; border-radius: 16px; padding: 13px 8px; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+  .stat-emoji { font-size: 1.4rem; display: block; }
+  .stat-val { font-family: 'Fredoka One', cursive; font-size: 1.45rem; color: var(--blue); display: block; line-height: 1.2; }
+  .stat-lbl { font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+
+  /* Celebration */
+  .celebration {
+    position: fixed; inset: 0;
+    background: rgba(255,255,255,0.93);
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; z-index: 100; backdrop-filter: blur(8px);
+  }
+  .celebration.show { display: flex; animation: fadeIn 0.4s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .celebration h2 { font-family:'Fredoka One',cursive; font-size:2.8rem; color:var(--blue); text-align:center; margin-bottom:12px; animation:bounceIn 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes bounceIn { from{transform:scale(0)} to{transform:scale(1)} }
+  .confetti-emoji { font-size:3.6rem; display:block; text-align:center; animation:spin 1s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .celebration button { margin-top:22px; background:var(--grass); color:white; border:none; border-radius:50px; padding:13px 36px; font-family:'Fredoka One',cursive; font-size:1.25rem; cursor:pointer; box-shadow:0 6px 0 #04a67d; }
+
+  /* Loading */
+  .loading-msg { text-align:center; padding:18px; font-weight:700; color:var(--blue); font-family:'Fredoka One',cursive; font-size:1.15rem; display:none; }
+  .loading-msg.visible { display:block; }
+  .spinner { display:inline-block; width:22px; height:22px; border:3px solid #c0d0ff; border-top-color:var(--blue); border-radius:50%; animation:spinLoader 0.7s linear infinite; vertical-align:middle; margin-right:6px; }
+  @keyframes spinLoader { to{transform:rotate(360deg)} }
+
+  /* No-speech browser warning */
+  .browser-warn { background:#fff3cd; border:2px solid #ffc107; border-radius:14px; padding:14px 18px; margin-bottom:14px; font-size:0.88rem; font-weight:700; display:none; }
+  .browser-warn.visible { display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="book-emoji">📖</span> ReadBuddy</div>
+  <p class="tagline">Listen along as you read! We're here to help 🌟</p>
+</header>
+
+<div class="app">
+
+  <!-- Browser warning -->
+  <div class="browser-warn" id="browserWarn">
+    ⚠️ Your browser may not support voice listening. For best results, please use <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>.
+  </div>
+
+  <!-- Debug toggle -->
+  <button class="debug-toggle" id="debugToggle" onclick="toggleDebug()" style="display:none">🔍 Show Debug Log</button>
+
+  <!-- Debug panel -->
+  <div class="debug-panel" id="debugPanel"></div>
+
+  <!-- Upload zone -->
+  <div class="upload-zone" id="uploadZone">
+    <input type="file" id="pdfInput" accept=".pdf" />
+    <span class="upload-icon">📚</span>
+    <h2>Upload Your Book!</h2>
+    <p>Drag & drop a PDF here, or tap to choose one</p>
+    <span class="upload-btn">Choose a Book</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-msg" id="loadingMsg"><span class="spinner"></span> Reading your book...</div>
+
+  <!-- Book info -->
+  <div class="book-info hidden" id="bookInfo">
+    <div class="book-cover-thumb">📖</div>
+    <div class="book-meta">
+      <div class="book-title" id="bookTitle">—</div>
+      <div class="word-count" id="wordCount">—</div>
+    </div>
+    <button class="change-book-btn" id="changeBookBtn">Change Book</button>
+  </div>
+
+  <!-- Reader section -->
+  <div class="reader-section" id="readerSection">
+
+    <!-- Mic status -->
+    <div class="mic-status">
+      <div class="mic-dot" id="micDot"></div>
+      <span id="micStatusText">Press the button to start reading</span>
+      <span class="last-heard" id="lastHeard"></span>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <span class="progress-label">Progress</span>
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
+      <span class="progress-pct" id="progressPct">0%</span>
+    </div>
+
+    <!-- Text display -->
+    <div class="text-display" id="textDisplay">
+      <em style="color:#9ca3af;font-style:normal;">Press the big green button and start reading! 🎉</em>
+    </div>
+
+    <!-- Hint box -->
+    <div class="hint-box" id="hintBox">
+      <span class="hint-emoji" id="hintEmoji">🔊</span>
+      <div class="hint-level" id="hintLevel">Hint</div>
+      <div class="hint-text" id="hintText">—</div>
+      <div class="hint-subtext" id="hintSubtext"></div>
+      <button class="speak-btn" onclick="speakHintAgain()">🔊 Say it again!</button>
+    </div>
+
+    <!-- Big button -->
+    <div class="listen-area">
+      <button class="big-btn" id="listenBtn" onclick="toggleListening()">🎤</button>
+      <span class="btn-label" id="btnLabel">Start Reading!</span>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card"><span class="stat-emoji">✅</span><span class="stat-val" id="statWords">0</span><span class="stat-lbl">Words Read</span></div>
+      <div class="stat-card"><span class="stat-emoji">💡</span><span class="stat-val" id="statHints">0</span><span class="stat-lbl">Hints Given</span></div>
+      <div class="stat-card"><span class="stat-emoji">⭐</span><span class="stat-val" id="statStreak">0</span><span class="stat-lbl">Streak</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Celebration -->
+<div class="celebration" id="celebration">
+  <span class="confetti-emoji">🎉</span>
+  <h2>Amazing Job!<br>You finished! 🌟</h2>
+  <button onclick="resetApp()">Read Another Book!</button>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ===== STATE =====
+let words = [];
+let wordsCleaned = []; // lowercased, stripped punctuation version of each word
+let currentWordIndex = 0;
+let isListening = false;
+let recognition = null;
+let hintTimer = null;
+let currentHintLevel = 0;
+let statsWords = 0, statsHints = 0, statsStreak = 0;
+let lastSpokenHint = '';
+let debugMode = false;
+
+// ===== BROWSER CHECK =====
+window.addEventListener('load', () => {
+  const hasSpeech = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
+  if (!hasSpeech) {
+    document.getElementById('browserWarn').classList.add('visible');
+  }
+  // Show debug toggle always (helpful for testing)
+  document.getElementById('debugToggle').style.display = 'inline-block';
+  // Pre-load voices
+  window.speechSynthesis.getVoices();
+});
+
+function toggleDebug() {
+  debugMode = !debugMode;
+  document.getElementById('debugPanel').classList.toggle('visible', debugMode);
+  document.getElementById('debugToggle').textContent = debugMode ? '🔍 Hide Debug Log' : '🔍 Show Debug Log';
+}
+
+function debugLog(msg, type='') {
+  if (!debugMode) return;
+  const panel = document.getElementById('debugPanel');
+  const line = document.createElement('div');
+  line.className = 'debug-line ' + type;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  panel.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+  // Keep only last 60 lines
+  while (panel.children.length > 60) panel.removeChild(panel.firstChild);
+}
+
+// ===== PDF UPLOAD =====
+const uploadZone = document.getElementById('uploadZone');
+const pdfInput = document.getElementById('pdfInput');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+pdfInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+async function handleFile(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) { alert('Please upload a PDF file!'); return; }
+
+  document.getElementById('loadingMsg').classList.add('visible');
+  uploadZone.style.display = 'none';
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      fullText += content.items.map(item => item.str).join(' ') + ' ';
+    }
+
+    // Split into words, filter blanks
+    words = fullText.replace(/\s+/g, ' ').trim().split(' ').filter(w => w.trim().length > 0);
+    // Pre-clean each word for matching
+    wordsCleaned = words.map(w => cleanWord(w));
+
+    debugLog(`Loaded ${words.length} words from PDF`, 'match');
+
+    document.getElementById('loadingMsg').classList.remove('visible');
+    document.getElementById('bookInfo').classList.remove('hidden');
+    document.getElementById('bookTitle').textContent = file.name.replace(/\.pdf$/i, '');
+    document.getElementById('wordCount').textContent = `${words.length.toLocaleString()} words`;
+    document.getElementById('readerSection').classList.add('visible');
+
+    currentWordIndex = 0;
+    renderText();
+  } catch(err) {
+    document.getElementById('loadingMsg').classList.remove('visible');
+    uploadZone.style.display = '';
+    alert('Sorry, I had trouble reading that PDF. Try a different file!');
+    console.error(err);
+  }
+}
+
+document.getElementById('changeBookBtn').addEventListener('click', () => {
+  stopListening();
+  uploadZone.style.display = '';
+  document.getElementById('bookInfo').classList.add('hidden');
+  document.getElementById('readerSection').classList.remove('visible');
+  pdfInput.value = '';
+  words = []; wordsCleaned = [];
+});
+
+// ===== WORD CLEANING =====
+function cleanWord(w) {
+  return w.toLowerCase().replace(/[^a-z0-9']/g, '');
+}
+
+// ===== FUZZY MATCHING ENGINE =====
+// Levenshtein distance — how many edits to get from a to b
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b[i-1] === a[j-1]) {
+        matrix[i][j] = matrix[i-1][j-1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i-1][j-1] + 1,  // substitute
+          matrix[i][j-1] + 1,    // insert
+          matrix[i-1][j] + 1     // delete
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+// Does spoken word match expected word?
+function isMatch(spoken, expected) {
+  if (!spoken || !expected) return false;
+
+  // Exact match
+  if (spoken === expected) return true;
+
+  // Very short words — require exact or 1-char difference only
+  if (expected.length <= 2) return spoken === expected;
+
+  // Starts-with match for longer words (child may trail off)
+  if (expected.length >= 5 && spoken.length >= 4) {
+    if (expected.startsWith(spoken.slice(0, 4))) return true;
+    if (spoken.startsWith(expected.slice(0, 4))) return true;
+  }
+
+  // Levenshtein tolerance scaled to word length
+  const dist = levenshtein(spoken, expected);
+  const maxLen = Math.max(spoken.length, expected.length);
+
+  // Allow 1 error for words 4-6 chars, 2 errors for 7+ chars
+  if (expected.length <= 3) return dist === 0;
+  if (expected.length <= 6) return dist <= 1;
+  return dist <= 2;
+}
+
+// Look-ahead: try to match spoken word against next N expected words
+// This handles cases where recognition skips a word or catches up
+function findBestMatchAhead(spokenWord, startIdx, lookAhead = 4) {
+  for (let i = startIdx; i < Math.min(startIdx + lookAhead, wordsCleaned.length); i++) {
+    if (isMatch(spokenWord, wordsCleaned[i])) return i;
+  }
+  return -1;
+}
+
+// ===== SPEECH RECOGNITION =====
+function toggleListening() {
+  isListening ? stopListening() : startListening();
+}
+
+function startListening() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert('Voice listening is not supported in this browser. Please use Chrome or Edge!');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = 'en-US';
+  recognition.maxAlternatives = 3; // Get multiple interpretations!
+
+  recognition.onstart = () => {
+    debugLog('Microphone started', 'match');
+    setMicStatus('active', 'Listening... start reading!');
+  };
+
+  recognition.onresult = handleResult;
+
+  recognition.onerror = (e) => {
+    debugLog(`Speech error: ${e.error}`, 'hint');
+    if (e.error === 'not-allowed') {
+      alert('Microphone access was denied. Please allow microphone access and try again.');
+      stopListening();
+    } else if (e.error === 'network') {
+      debugLog('Network error — speech recognition needs internet', 'hint');
+    }
+    // For no-speech errors, just keep going
+  };
+
+  recognition.onend = () => {
+    // Auto-restart if we're still supposed to be listening
+    if (isListening) {
+      try { recognition.start(); } catch(e) { debugLog('Restart failed: ' + e.message, 'hint'); }
+    }
+  };
+
+  recognition.start();
+  isListening = true;
+
+  document.getElementById('listenBtn').classList.add('listening');
+  document.getElementById('listenBtn').textContent = '⏹️';
+  document.getElementById('btnLabel').textContent = "I'm Listening!";
+
+  startHintTimer();
+}
+
+function stopListening() {
+  isListening = false;
+  if (recognition) { try { recognition.stop(); } catch(e){} recognition = null; }
+  clearHintTimer();
+  setMicStatus('', 'Press the button to start reading');
+  document.getElementById('listenBtn').classList.remove('listening');
+  document.getElementById('listenBtn').textContent = '🎤';
+  document.getElementById('btnLabel').textContent = 'Start Reading!';
+}
+
+function setMicStatus(state, text) {
+  const dot = document.getElementById('micDot');
+  dot.className = 'mic-dot' + (state ? ' ' + state : '');
+  document.getElementById('micStatusText').textContent = text;
+}
+
+// ===== PROCESS SPEECH RESULTS =====
+let processingBuffer = [];
+let lastFinalIndex = 0;
+
+function handleResult(event) {
+  // Collect all alternatives from all results
+  let allSpoken = new Set();
+
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    const result = event.results[i];
+
+    // Gather all alternatives
+    for (let a = 0; a < result.length; a++) {
+      const transcript = result[a].transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, '').trim();
+      const spoken = transcript.split(/\s+/).filter(w => w.length > 0);
+      spoken.forEach(w => allSpoken.add(w));
+    }
+
+    if (result.isFinal) {
+      // Process final results more carefully
+      const transcript = result[0].transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, '').trim();
+      const spokenWords = transcript.split(/\s+/).filter(w => w.length > 0);
+
+      debugLog(`Heard (final): "${transcript}"`, 'heard');
+      document.getElementById('lastHeard').textContent = `Heard: "${transcript}"`;
+      setMicStatus('heard', 'Heard something!');
+      setTimeout(() => setMicStatus('active', 'Listening...'), 800);
+
+      processSpokenWords(spokenWords);
+    } else {
+      // For interim results, just try to match individual words
+      const transcript = result[0].transcript.toLowerCase().replace(/[^a-z0-9'\s]/g, '').trim();
+      debugLog(`Heard (interim): "${transcript}"`, 'heard');
+      document.getElementById('lastHeard').textContent = `"${transcript}"`;
+      setMicStatus('active', 'Hearing...');
+    }
+  }
+}
+
+function processSpokenWords(spokenWords) {
+  let anyMatch = false;
+
+  for (const spokenWord of spokenWords) {
+    if (currentWordIndex >= wordsCleaned.length) break;
+
+    // Try to match this spoken word against next few expected words
+    const matchIdx = findBestMatchAhead(spokenWord, currentWordIndex, 5);
+
+    if (matchIdx !== -1) {
+      // If we skipped words, advance past them (child may have read them too fast)
+      if (matchIdx > currentWordIndex) {
+        debugLog(`Skipped ${matchIdx - currentWordIndex} word(s) to match "${spokenWord}" → "${wordsCleaned[matchIdx]}"`, 'match');
+      } else {
+        debugLog(`Matched: "${spokenWord}" → "${wordsCleaned[matchIdx]}"`, 'match');
+      }
+
+      // Advance to the matched word + 1
+      const wordsAdvanced = matchIdx - currentWordIndex + 1;
+      for (let i = 0; i < wordsAdvanced; i++) {
+        currentWordIndex++;
+        statsWords++;
+        statsStreak++;
+      }
+
+      updateStats();
+      currentHintLevel = 0;
+      anyMatch = true;
+
+      if (currentWordIndex >= words.length) {
+        stopListening();
+        showCelebration();
+        return;
+      }
+
+      renderText();
+    } else {
+      debugLog(`No match for: "${spokenWord}" (expected: "${wordsCleaned[currentWordIndex]}")`, 'hint');
+    }
+  }
+
+  if (anyMatch) {
+    clearHintTimer();
+    hideHint();
+    startHintTimer();
+  }
+}
+
+// ===== HINT SYSTEM =====
+function startHintTimer() {
+  clearHintTimer();
+  // 5 seconds of silence before first hint
+  hintTimer = setTimeout(giveHint, 5000);
+}
+
+function clearHintTimer() {
+  if (hintTimer) { clearTimeout(hintTimer); hintTimer = null; }
+}
+
+function giveHint() {
+  if (!isListening || currentWordIndex >= words.length) return;
+
+  const word = words[currentWordIndex];
+  const clean = word.replace(/[^a-zA-Z']/g, '');
+
+  statsHints++;
+  statsStreak = 0;
+  updateStats();
+
+  debugLog(`Hint level ${currentHintLevel} for "${clean}"`, 'hint');
+
+  if (currentHintLevel === 0) {
+    const sound = getFirstSound(clean);
+    showHint('🔊', 'First Sound', sound + '...', `Listen to the first sound of "${clean}"`, sound);
+  } else if (currentHintLevel === 1) {
+    const syllable = getFirstSyllable(clean);
+    showHint('💬', 'First Part', syllable + '-', `Try saying: "${syllable}"`, syllable);
+  } else {
+    showHint('🌟', 'The Word Is...', clean, 'Try reading the whole word!', clean);
+    currentHintLevel = -1; // will become 0 after increment
+  }
+
+  currentHintLevel++;
+  hintTimer = setTimeout(giveHint, 6000);
+}
+
+function showHint(emoji, level, text, subtext, toSpeak) {
+  document.getElementById('hintEmoji').textContent = emoji;
+  document.getElementById('hintLevel').textContent = level;
+  document.getElementById('hintText').textContent = text;
+  document.getElementById('hintSubtext').textContent = subtext;
+  document.getElementById('hintBox').classList.add('visible');
+
+  // Re-trigger animation
+  const emojiEl = document.getElementById('hintEmoji');
+  emojiEl.style.animation = 'none';
+  requestAnimationFrame(() => emojiEl.style.animation = '');
+
+  lastSpokenHint = toSpeak;
+  speakText(toSpeak);
+}
+
+function hideHint() {
+  document.getElementById('hintBox').classList.remove('visible');
+}
+
+function speakHintAgain() { speakText(lastSpokenHint); }
+
+function speakText(text) {
+  const synth = window.speechSynthesis;
+  if (!synth) return;
+  synth.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate = 0.72;
+  utt.pitch = 1.1;
+  utt.volume = 1;
+  const voices = synth.getVoices();
+  const preferred = voices.find(v =>
+    v.name.includes('Samantha') || v.name.includes('Karen') ||
+    v.name.includes('Moira') || v.name.includes('Fiona') ||
+    (v.lang === 'en-US' && v.localService)
+  );
+  if (preferred) utt.voice = preferred;
+  synth.speak(utt);
+}
+
+// ===== PHONICS HELPERS =====
+function getFirstSound(word) {
+  if (!word) return '';
+  const w = word.toLowerCase();
+  const digraphs = ['ch','sh','th','wh','ph','qu','gh','ck','sc','sk','sl','sm','sn','sp','st','sw','bl','br','cl','cr','dr','fl','fr','gl','gr','pl','pr','tr','wr'];
+  for (const d of digraphs) {
+    if (w.startsWith(d)) return d;
+  }
+  return w[0];
+}
+
+function getFirstSyllable(word) {
+  if (!word || word.length <= 2) return word;
+  const w = word.toLowerCase();
+  const vowels = 'aeiou';
+
+  let firstVowelIdx = -1;
+  for (let i = 0; i < w.length; i++) {
+    if (vowels.includes(w[i])) { firstVowelIdx = i; break; }
+  }
+
+  if (firstVowelIdx === -1) return w.slice(0, Math.min(3, w.length));
+  if (firstVowelIdx === 0) {
+    // Starts with vowel — include next consonant if short
+    return w.slice(0, Math.min(3, w.length));
+  }
+
+  // Include consonant(s) + vowel + next consonant (CVC pattern)
+  if (firstVowelIdx + 1 < w.length && !vowels.includes(w[firstVowelIdx + 1])) {
+    return w.slice(0, firstVowelIdx + 2);
+  }
+  return w.slice(0, firstVowelIdx + 1);
+}
+
+// ===== RENDER TEXT =====
+function renderText() {
+  const display = document.getElementById('textDisplay');
+  const windowStart = Math.max(0, currentWordIndex - 6);
+  const windowEnd = Math.min(words.length, currentWordIndex + 35);
+
+  let html = windowStart > 0 ? '<span style="color:#d1d5db;font-size:0.8em">... </span>' : '';
+
+  for (let i = windowStart; i < windowEnd; i++) {
+    const cls = i < currentWordIndex ? 'read' : i === currentWordIndex ? 'current' : '';
+    html += `<span class="word ${cls}">${words[i]}</span> `;
+  }
+
+  if (windowEnd < words.length) html += '<span style="color:#d1d5db;font-size:0.8em">...</span>';
+  display.innerHTML = html;
+
+  const currentEl = display.querySelector('.word.current');
+  if (currentEl) currentEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const pct = words.length > 0 ? Math.round((currentWordIndex / words.length) * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressPct').textContent = pct + '%';
+}
+
+function updateStats() {
+  document.getElementById('statWords').textContent = statsWords;
+  document.getElementById('statHints').textContent = statsHints;
+  document.getElementById('statStreak').textContent = statsStreak;
+}
+
+// ===== CELEBRATION =====
+function showCelebration() {
+  document.getElementById('celebration').classList.add('show');
+  speakText('Wow! You did it! That was amazing reading!');
+}
+
+function resetApp() {
+  document.getElementById('celebration').classList.remove('show');
+  currentWordIndex = 0;
+  currentHintLevel = 0;
+  statsWords = 0; statsHints = 0; statsStreak = 0;
+  updateStats();
+  hideHint();
+  if (words.length > 0) renderText();
+}
+</script>
+</body>
+</html>

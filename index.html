@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReadBuddy 📚</title>
-<!-- v9.4 - improved hint timing + voice -->
+<!-- v9.5 - fix premature hints + skip-ahead -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Fredoka+One&display=swap');
@@ -250,6 +250,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 
 var allPages=[], words=[], selectedIdx=0;
 var idx=0, listening=false, recog=null, hintTimer=null, hintStep=0;
+var childHasSpoken=false; // true once child has said their first word this session
 var nW=0,nH=0,nS=0, lastSpeakTime=0, lastHeard=[], currentFileName='';
 var HINT_DELAY=5000; // 5s silence before first hint
 var hintSpeaking=false; // true while TTS is playing
@@ -610,11 +611,13 @@ function startListen(){
   recog.onerror=function(e){if(e.error!=='no-speech'&&e.error!=='aborted')document.getElementById('diagStatus').textContent='Mic error: '+e.error;};
   recog.onend=function(){if(listening){try{recog.start();}catch(e){}}};
   try{recog.start();}catch(e){alert('Mic error: '+e.message);return;}
-  listening=true;lastSpeakTime=Date.now();
+  listening=true;
+  childHasSpoken=false;          // reset — don't allow hints until first speech
+  lastSpeakTime=Date.now()+99999; // far future — hints can't fire until child speaks
   document.getElementById('bigBtn').classList.add('on');
   document.getElementById('bigBtn').textContent='⏹️';
   document.getElementById('btnLbl').textContent="I'm Listening!";
-  armHint();
+  // Don't arm hint timer yet — armHint() is called after first speech in onResult
 }
 function stopListen(){
   listening=false;
@@ -625,24 +628,40 @@ function stopListen(){
   document.getElementById('btnLbl').textContent='Start Reading!';
 }
 function onResult(event){
+  // Only use FINAL (committed) results — ignore interim/speculative transcripts
+  // which caused phantom word matches while child was mid-sentence
   var pool={};
-  for(var r=0;r<event.results.length;r++)
+  for(var r=0;r<event.results.length;r++){
+    if(!event.results[r].isFinal) continue; // skip interim results
     for(var a=0;a<event.results[r].length;a++)
       event.results[r][a].transcript.toLowerCase()
         .replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean)
         .forEach(function(w){pool[w]=true;});
+  }
   var heardArr=Object.keys(pool);
-  if(!heardArr.length)return;
-  lastHeard=heardArr;lastSpeakTime=Date.now();
+  if(!heardArr.length) return;
+
+  // First speech — arm the hint timer now and reset silence clock
+  if(!childHasSpoken){
+    childHasSpoken=true;
+    lastSpeakTime=Date.now();
+    armHint();
+  } else {
+    lastSpeakTime=Date.now(); // reset silence clock on every new word heard
+  }
+
+  lastHeard=heardArr;
   updateDiag(heardArr,idx);
+
+  // Look-ahead of 2 only (not 6) — stay close to current word, don't leap ahead
   var advance=-1;
-  outer:for(var off=0;off<6&&idx+off<words.length;off++){
+  outer:for(var off=0;off<2&&idx+off<words.length;off++){
     var target=clean(words[idx+off]);
     for(var h=0;h<heardArr.length;h++){
       if(matches(heardArr[h],target)){advance=off;break outer;}
     }
   }
-  if(advance>=0){for(var i=0;i<=advance;i++)advanceOne();clearHintTimer();armHint();hideHint();}
+  if(advance>=0){for(var i=0;i<=advance;i++)advanceOne();hideHint();}
 }
 function clean(w){return(''+w).toLowerCase().replace(/[^a-z]/g,'');}
 function matches(heard,expected){
@@ -680,6 +699,8 @@ function advanceOne(){
   nW++;nS++;idx++;hintStep=0;hideHint();updateStats();
   if(idx>=words.length){stopListen();celebrate();return;}
   renderText();updateDiag(lastHeard,idx);
+  // Fresh 5s window for the new word before any hint fires
+  lastSpeakTime=Date.now();
 }
 
 // ══════════════════════════════════════
